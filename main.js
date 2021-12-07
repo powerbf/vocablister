@@ -92,8 +92,8 @@ function readDictionary(sourceLang, targetLang, filename) {
         {
             let fields = line.split('\t');
             if (fields.length >= 2) {
-                dict.addEntry(fields[0], fields[1]);
-                count++;
+                if (dict.addEntry(fields[0], fields[1]))
+                    count++;
             }
         } 
     }

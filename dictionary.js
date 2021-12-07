@@ -19,6 +19,10 @@ module.exports = class Dictionary {
         entry["source"] = source;
         entry["target"] = target;
 
+        // ignore multi-word entries
+        if (key.includes(" "))
+            return false;
+
         if (!(key in this.entries))
             this.entries[key] = [];
 
