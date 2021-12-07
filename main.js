@@ -182,12 +182,17 @@ function process(requestData) {
             if (meanings.length > 0 && meanings[0].frequency <= freqThreshold)
                     continue;
 
-            if (meanings.length == 0 && i == 0) {
+            if (meanings.length == 0) {
                 // may be uppercase because it starts a sentence
                 // try to lookup up word in lowercase
-                meanings = lookup(dictionary, sourceLang, word.toLowerCase());
-                if (meanings.length > 0 && meanings[0].frequency <= freqThreshold)
+                let lower = word.toLowerCase();
+                if (lookedUp[lower])
                     continue;
+                if (lower != word) {
+                    meanings = lookup(dictionary, sourceLang, lower);
+                    if (meanings.length > 0 && meanings[0].frequency <= freqThreshold)
+                        continue;
+                }
             }
 
 
