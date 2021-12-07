@@ -34,16 +34,23 @@ module.exports = class Dictionary {
             let consolidated = {}; 
             for (let i = 0; i < meanings.length; i++) {
                 let source = meanings[i].source;
-                let target = meanings[i].target;
                 if (!(source in consolidated))
-                    consolidated[source] = "";
-                if (consolidated[source] != "")
-                    consolidated[source] += ", ";
-                consolidated[source] += target;
+                    consolidated[source] = [];
+                consolidated[source].push(meanings[i].target);
             }
             let results = [];
-            for (const [key, value] of Object.entries(consolidated)) {
-                results.push({key: term, source: key, target: value});
+            for (var [source, targets] of Object.entries(consolidated)) {
+                targets = targets.sort((a, b) => {
+                    // put meaning without annotations first - they are likely to be more common
+                    if (!a.includes("[") && b.includes("["))
+                        return -1;
+                    else if (a.includes("[") && !b.includes("["))
+                        return 1;
+                    else
+                        return 0;
+                });
+                let target = targets.join(", ");
+                results.push({key: term, source: source, target: target});
             }
             return results;
         }
