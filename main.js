@@ -195,6 +195,16 @@ function process(requestData) {
         }
     }
 
+    // convert frequency to string
+    // put X+ if it's not in the frequency list
+    var numFreqs = sourceLang.getFrequencyListSize();
+    for (var res of results) {
+        if (res.frequency > numFreqs)
+            res.freq = numFreqs.toString() + "+";
+        else
+            res.freq = res.frequency.toString();
+    }
+
     return results;
 }
 

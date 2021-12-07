@@ -61,9 +61,13 @@ module.exports = class Language {
             res = this.frequency[word.toLowerCase()];
         if (res == null) {
             //console.log("Frequency of " + word + " is null");
-            return Number.MAX_VALUE;
+            return this.getFrequencyListSize() + 1;
         }
         //console.log("Frequency of " + word + " is " + res.toString());
         return res;
+    }
+
+    getFrequencyListSize() {
+        return Object.keys(this.frequency).length;
     }
 }

@@ -14,8 +14,7 @@ $("#inputs").submit(function( event ) {
             for (let i = 0; i < response.length; i++) {
                 output += "<tr>";
                 let entry = response[i];
-                let freq = (entry.frequency == Number.MAX_VALUE ? "" : entry.frequency.toString());
-                output += "<td>" + freq + "</td>"
+                output += "<td>" + entry.freq + "</td>"
                 output += "<td>" + entry.source + "</td>"
                 output += "<td>" + entry.target + "</td>"
                 output += "</tr>";
