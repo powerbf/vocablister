@@ -19,6 +19,11 @@ const server = http.createServer((req, res) => {
         res.writeHead(200, { 'content-type': 'text/javascript' })
         fs.createReadStream('client.js').pipe(res)
     }
+    else if (req.url == "/styles.css")
+    {
+        res.writeHead(200, { 'content-type': 'text/css' })
+        fs.createReadStream('styles.css').pipe(res)
+    }
     else {
         res.writeHead(200, { 'content-type': 'text/html' })
         fs.createReadStream('index.html').pipe(res)

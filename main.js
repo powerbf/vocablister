@@ -7,9 +7,21 @@ var Language = require('./language.js');
 var LanguageReader = require('./language-reader.js');
 
 function isPunctuation(ch) {
-    return ((ch >= '\u0021' && ch <= '\u002F') || (ch >= '\u003A' && ch <= '\u0040')
-           || (ch >= '\u005B' && ch <= '\u0060') || (ch >= '\u007B' && ch <= '\u007E'));
+    // basic latin
+    if ((ch >= '\u0021' && ch <= '\u002F') || (ch >= '\u003A' && ch <= '\u0040')
+            || (ch >= '\u005B' && ch <= '\u0060') || (ch >= '\u007B' && ch <= '\u007E'))
+        return true;
+
+    // latin extended A
+    if ((ch >= '\u00A0' && ch <= '\u00BF') || ch == '\u00D7' || ch == '\u00F7')
+        return true;
+
+    // general punctuation
+    if (ch >= '\u2000' && ch <= '\u206F')
+        return true;
+    
     // TODO: other punctuation
+    return false;
 }
 
 function isWordPunctuation(ch) {
@@ -144,7 +156,7 @@ function sortByFrequency(meanings)
 
 function process(requestData) {
     var sourceLang = languages[requestData["source_lang"]];
-    var minFrequency = 100;
+    var freqThreshold = parseInt(requestData["freqThreshold"]);
     var text = cleanText(requestData["text"]);
 
     var dictionary = dictionaries["de-en"];
@@ -158,18 +170,23 @@ function process(requestData) {
         let words = splitWords(sentences[i]);
         for (let j = 0; j < words.length; j++) {
             let word = words[j];
+
+            // ignore numbers
+            if (word.match(/^[0-9\.,]*$/))
+                continue;
+
             if (lookedUp[word])
                 continue;
 
             let meanings = lookup(dictionary, sourceLang, word);
-            if (meanings.length > 0 && meanings[0].frequency < minFrequency)
+            if (meanings.length > 0 && meanings[0].frequency <= freqThreshold)
                     continue;
 
             if (meanings.length == 0 && i == 0) {
                 // may be uppercase because it starts a sentence
                 // try to lookup up word in lowercase
                 meanings = lookup(dictionary, sourceLang, word.toLowerCase());
-                if (meanings.length > 0 && meanings[0].frequency < minFrequency)
+                if (meanings.length > 0 && meanings[0].frequency <= freqThreshold)
                     continue;
             }
 
@@ -179,7 +196,7 @@ function process(requestData) {
                 let canonical = canonicals[c];
                 let extras = lookup(dictionary, sourceLang, canonical);
                 if (extras.length > 0) {
-                    console.log("Adding results for " + canonical + " to results for " + word);
+                    //console.log("Adding results for " + canonical + " to results for " + word);
                     meanings = meanings.concat(extras);
                 }
             }
@@ -190,6 +207,15 @@ function process(requestData) {
                 results.push(entry);
             }
             else {
+                let ignore = false;
+                for (var m of meanings) {
+                    if (m.frequency <= freqThreshold) {
+                        ignore = true;
+                        break;
+                    }
+                }
+                if (ignore)
+                    continue;
                 results = results.concat(sortByFrequency(meanings));
             }
         }

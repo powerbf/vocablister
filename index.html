@@ -54,8 +54,20 @@
                             </select>
                         </td>
                     </tr>
+                    <tr data-bs-toggle="tooltip" data-bs-html="true" data-bs-placement="left" data-bs-trigger="hover"
+                        title="">
+                        <td>
+                            <label class="text-nowrap">Ignore the</label>
+                        </td>
+                        <td>
+                            <input type="number" class="form-control" id="freqThreshold" min="0" max="10000" value="1000"></input>
+                        </td>
+                        <td>
+                            <label class="text-nowrap">most common words</label>
+                        </td>
+                    </tr>
                     <tr>
-                        <td><button id="submit">Submit</button></td>
+                        <td><button id="submit" class="btn btn-primary">Submit</button></td>
                         <td></td>
                     </tr>
                 </table>

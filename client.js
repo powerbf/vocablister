@@ -32,6 +32,7 @@ function form2object() {
     var result = {};
     result["source_lang"] = $("#source_lang").val();
     result["target_lang"] = $("#target_lang").val();
+    result["freqThreshold"] = $('#freqThreshold').val();
     result["text"] = $('textarea#data').val();
     return result;
 }
