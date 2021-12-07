@@ -1,0 +1,35 @@
+.table td.fit,
+.table th.fit {
+    white-space: nowrap;
+    width: 1%;
+}
+
+.number-val {
+    display: inline-block;
+    width: 1.5em;
+    text-align: center;
+}
+
+.bi-caret-left-fill, .bi-caret-right-fill {
+    display: inline-block;
+    color: violet;
+}
+
+#results {
+    margin-top: 5px;
+}
+
+tr {
+    line-height: 1.2em;
+    min-height: 1.2em;
+    height: 1.2em;
+}
+
+.form-select-sm {
+    width: 10em;
+}
+
+/* this works in Chrome, but not in Firefox */
+option.obsolete {
+    color: red;
+}

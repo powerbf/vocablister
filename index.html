@@ -1,0 +1,78 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8"/>
+
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500&amp;display=swap" rel="stylesheet" />
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" 
+        crossorigin="anonymous">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+
+    <link rel="stylesheet" href="styles.css" />
+
+    <title>Vocab Lister</title>
+</head>
+
+<body>
+    <h5>Vocab Lister</h5>
+    <form id="inputs" class="container">
+        <div class="row">
+            <div class="col col-sm-12 col-md-5 col-lg-6">
+                <textarea id="data" class="form-control" rows="10" cols="100" placeholder="Paste text">
+                      Der schnelle braune Fuchs springt über den faulen Hund. Was sagt der Fuchs? Blah blah
+                </textarea>
+                <div class="row">
+                    &nbsp;
+                </div>
+            </div>
+            <div class="col col-md-2 col-lg-2 text-nowrap" id="skills1">
+                <table>
+                    <tr data-bs-toggle="tooltip" data-bs-html="true" data-bs-placement="left" data-bs-trigger="hover"
+                        title="Source language">
+                        <td>
+                            <label class="text-nowrap">From:</label>
+                        </td>
+                        <td>
+                            <!-- full list will be populated by javascript -->
+                            <select name="source_lang" id="source_lang" class="form-select form-select-sm">
+                              <option value="de">German</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr data-bs-toggle="tooltip" data-bs-html="true" data-bs-placement="left" data-bs-trigger="hover"
+                        title="Target language">
+                        <td>
+                            <label class="text-nowrap">To:</label>
+                        </td>
+                        <td>
+                            <!-- full list will be populated by javascript -->
+                            <select name="target_lang" id="target_lang" class="form-select form-select-sm">
+                              <option value="en">English</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><button id="submit">Submit</button></td>
+                        <td></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </form>
+    <div class="container" id="results">
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
+
+    <script src="client.js"></script>
+
+</body>
+
+</html>
