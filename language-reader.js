@@ -17,6 +17,7 @@ module.exports = class LanguageReader {
     }
 
     readLanguage(code) {
+        console.log("Loading language: " + code + "...")
         var lang = new Language(code);
         var dir = this.languagesDir + "/" + code;
         this.readFrequencyList(lang, dir);

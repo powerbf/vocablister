@@ -1,7 +1,7 @@
 'use strict';
 
 const fs = require('fs');
-const readline = require('readline');
+const readlines = require('n-readlines');
 var Dictionary = require('./dictionary.js');
 var Language = require('./language.js');
 var LanguageReader = require('./language-reader.js');
@@ -69,19 +69,24 @@ function splitWords(text) {
 function readDictionary(sourceLang, targetLang, filename) {
     var dict = new Dictionary(sourceLang, targetLang);
     console.log("Reading " + filename + "...")
-    var lineReader = readline.createInterface({
-        input: fs.createReadStream(filename)
-    });
-  
-    lineReader.on('line', function (line) {
-        line = line.trim();
+
+    var lineReader = new readlines(filename);
+
+    let count = 0;
+    let line;
+    while (line = lineReader.next()) {
+        line = line.toString().trim();
         if (line != "" && line[0] != '#')
         {
             let fields = line.split('\t');
-            if (fields.length >= 2)
+            if (fields.length >= 2) {
                 dict.addEntry(fields[0], fields[1]);
+                count++;
+            }
         } 
-    });
+    }
+
+    console.log("Loaded " + count + " entries");
     return dict;
 }
 
