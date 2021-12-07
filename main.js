@@ -113,8 +113,6 @@ function init() {
 
 var lookedUp = {}
 function lookup(dict, sourceLang, word) {
-    if (lookedUp[word])
-        return[];
     lookedUp[word] = true;
     var results = dict.lookup(word);
     if (results.length > 0) {
@@ -182,19 +180,19 @@ function process(requestData) {
             if (meanings.length > 0 && meanings[0].frequency <= freqThreshold)
                     continue;
 
-            if (meanings.length == 0) {
-                // may be uppercase because it starts a sentence
-                // try to lookup up word in lowercase
-                let lower = word.toLowerCase();
-                if (lookedUp[lower])
-                    continue;
-                if (lower != word) {
-                    meanings = lookup(dictionary, sourceLang, lower);
-                    if (meanings.length > 0 && meanings[0].frequency <= freqThreshold)
+            // may be uppercase because it starts a sentence
+            // try to lookup up word in lowercase
+            let lower = word.toLowerCase();
+            let prevLookedUpLower = false;
+            if (lower != word) {
+                prevLookedUpLower = lookedUp[lower];
+                if (!prevLookedUpLower) {
+                    let lowerMeanings = lookup(dictionary, sourceLang, lower);
+                    if (lowerMeanings.length > 0 && lowerMeanings[0].frequency <= freqThreshold)
                         continue;
+                    meanings = meanings.concat(lowerMeanings);
                 }
             }
-
 
             let canonicals = sourceLang.getCanonicals(word);
             for (let c = 0; c < canonicals.length; c++) {
@@ -207,6 +205,8 @@ function process(requestData) {
             }
 
             if (meanings.length == 0) {
+                if (prevLookedUpLower)
+                    continue;
                 let entry = {source:word, target:"???"};
                 entry.frequency = Number.MAX_VALUE;
                 results.push(entry);
