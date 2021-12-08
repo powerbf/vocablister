@@ -194,6 +194,33 @@ function filterResults(entries)
     return filtered;
 }
 
+function removeDuplicates(entries)
+{
+    let included = {};
+    let results = [];
+    for (let entry of entries) {
+        let previous = included[entry.source];
+        if (previous == null) {
+            results.push(entry);
+            included[entry.source] = [entry];
+        }
+        else {
+            let keep = true;
+            for (let other of previous) {
+                if (other.target == entry.target) {
+                    keep = false;
+                    break;
+                }
+            }
+            if (keep) {
+                results.push(entry);
+                previous.push(entry);
+            }
+        }
+    }
+    return results;
+}
+
 function process(requestData) {
     var sourceLang = languages[requestData["source_lang"]];
     var freqThreshold = parseInt(requestData["freqThreshold"]);
@@ -286,6 +313,7 @@ function process(requestData) {
     if (!showAll)
         results = filterResults(results);
 
+    results = removeDuplicates(results);
     return results;
 }
 
