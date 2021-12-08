@@ -132,7 +132,7 @@ function lookup(dict, sourceLang, word) {
     return results;
 }
 
-function findMeanings(dict, sourceLang, word) {
+function lookupWordAndCanonicals(dict, sourceLang, word) {
     searched[word] = true;
 
     // first look up the word itself
@@ -146,6 +146,41 @@ function findMeanings(dict, sourceLang, word) {
         if (extras.length > 0) {
             meanings = meanings.concat(extras);
         }
+    }
+
+    return meanings;
+}
+
+function findMeanings(dictionary, sourceLang, freqThreshold, showAll, word) {
+    let meanings = lookupWordAndCanonicals(dictionary, sourceLang, word);
+    if(anyBelowThreshold(freqThreshold, meanings))
+        return [];
+
+    // may be uppercase because it starts a sentence
+    // try to lookup word in lowercase
+    let lower = word.toLowerCase();
+    if (lower != word) {
+        let lowerMeanings = lookupWordAndCanonicals(dictionary, sourceLang, lower);
+        if(anyBelowThreshold(freqThreshold, lowerMeanings))
+            return [];
+        meanings = meanings.concat(lowerMeanings);
+    }
+
+    if (meanings.length == 0) {
+        // try capitalising first letter
+        let upper = word[0].toUpperCase() + word.substring(1);
+        if (upper != word) {
+            let upperMeanings = lookupWordAndCanonicals(dictionary, sourceLang, lower);
+            if(anyBelowThreshold(freqThreshold, upperMeanings))
+                return [];
+            meanings = meanings.concat(upperMeanings);    
+        }
+    }
+
+    if (showAll && meanings.length == 0) {
+        let entry = {key: word, source: word, target:"???"};
+        entry.frequency = sourceLang.getFrequencyRank(word);
+        meanings.push(entry);
     }
 
     return meanings;
@@ -276,37 +311,7 @@ function process(requestData) {
             if (searched[word])
                 continue;
 
-            let meanings = findMeanings(dictionary, sourceLang, word);
-            if(anyBelowThreshold(freqThreshold, meanings))
-                continue;
-
-            // may be uppercase because it starts a sentence
-            // try to lookup word in lowercase
-            let lower = word.toLowerCase();
-            if (lower != word) {
-                let lowerMeanings = findMeanings(dictionary, sourceLang, lower);
-                if(anyBelowThreshold(freqThreshold, lowerMeanings))
-                    continue;
-                meanings = meanings.concat(lowerMeanings);
-            }
-
-            if (meanings.length == 0) {
-                // try capitalising first letter
-                let upper = word[0].toUpperCase() + word.substring(1);
-                if (upper != word) {
-                    let upperMeanings = findMeanings(dictionary, sourceLang, lower);
-                    if(anyBelowThreshold(freqThreshold, upperMeanings))
-                        continue;
-                    meanings = meanings.concat(upperMeanings);    
-                }
-            }
-
-            if (showAll && meanings.length == 0) {
-                let entry = {key: word, source: word, target:"???"};
-                entry.frequency = sourceLang.getFrequencyRank(word);
-                meanings.push(entry);
-            }
-
+            let meanings = findMeanings(dictionary, sourceLang, freqThreshold, showAll, word);
             results = results.concat(sortByFrequencyandQuality(meanings));
         }
     }
