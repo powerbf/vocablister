@@ -9,10 +9,7 @@ main.init();
 
 const server = http.createServer((req, res) => {
     if (req.method === 'POST') {
-        collectRequestData(req, data => {
-            console.log(data);
-            res.end(JSON.stringify(main.process(data)));
-        });
+        handlePostRequest(req, res);
     }
     else if (req.url == "/client.js")
     {
@@ -42,5 +39,18 @@ function collectRequestData(request, callback) {
     request.on('end', () => {
         //console.log(body);
         callback(JSON.parse(body));
+    });
+}
+
+function handlePostRequest(req, res) {
+    collectRequestData(req, data => {
+        var response = {};
+        try {
+            response.results = main.process(data);
+        }
+        catch (err) {
+            response.error = "Something went wrong";
+        }
+        res.end(JSON.stringify(response));
     });
 }

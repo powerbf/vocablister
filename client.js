@@ -10,17 +10,25 @@ $("#inputs").submit(function( event ) {
         success: function(response) {
             //console.log(response);
             response = JSON.parse(response);
-            var output = "<table class='table table-bordered'>";
-            output += "<thead><th>Word</th><th>Freq</th><th>Meaning</th></thead>";
-            for (let i = 0; i < response.length; i++) {
-                output += "<tr>";
-                let entry = response[i];
-                output += "<td>" + entry.source + "</td>"
-                output += "<td>" + entry.freq + "</td>"
-                output += "<td>" + entry.target + "</td>"
-                output += "</tr>";
+            var output = "";
+            if (response.error != null) {
+                output = "<b>ERROR:</b> " + response.error;
             }
-            output += "</table>"
+            else
+            {
+                let results = response.results;
+                output = "<table class='table table-bordered'>";
+                output += "<thead><th>Word</th><th>Freq</th><th>Meaning</th></thead>";
+                for (let i = 0; i < results.length; i++) {
+                    output += "<tr>";
+                    let entry = results[i];
+                    output += "<td>" + entry.source + "</td>"
+                    output += "<td>" + entry.freq + "</td>"
+                    output += "<td>" + entry.target + "</td>"
+                    output += "</tr>";
+                }
+                output += "</table>"
+            }
             $("#results").html(output);
         }
     });
