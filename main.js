@@ -207,22 +207,22 @@ function process(requestData) {
             if (meanings.length == 0) {
                 if (prevLookedUpLower)
                     continue;
-                let entry = {source:word, target:"???"};
+                let entry = {key: word, source: word, target:"???"};
                 entry.frequency = sourceLang.getFrequencyRank(word);
-                results.push(entry);
+                meanings.push(entry);
             }
-            else {
-                let ignore = false;
-                for (var m of meanings) {
-                    if (m.frequency <= freqThreshold) {
-                        ignore = true;
-                        break;
-                    }
+
+
+            let ignore = false;
+            for (var m of meanings) {
+                if (m.frequency <= freqThreshold) {
+                    ignore = true;
+                    break;
                 }
-                if (ignore)
-                    continue;
-                results = results.concat(sortByFrequency(meanings));
             }
+            if (ignore)
+                continue;
+            results = results.concat(sortByFrequency(meanings));
         }
     }
 
