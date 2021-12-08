@@ -43,7 +43,8 @@ module.exports = class Language {
         this.variantPatterns.forEach(function (value, index, array) {
             let canonical = word.replace(value.variant, value.canonical);
              if (canonical != word && ! canonicals.includes(canonical)) {
-                //console.log("Canonical: " + word + " -> " + canonical)
+                //console.log("Canonical: " + word + " -> " + canonical +
+                //            " (" + value.variant + " -> " + value.canonical + ")");
                 canonicals.push(canonical);
             }
         });

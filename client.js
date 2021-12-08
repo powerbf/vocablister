@@ -1,4 +1,5 @@
 $("#inputs").submit(function( event ) {
+    $("#results").html("");
     $.ajax({
         type: "Post",
         url: "",
@@ -10,7 +11,7 @@ $("#inputs").submit(function( event ) {
             //console.log(response);
             response = JSON.parse(response);
             var output = "<table class='table table-bordered'>";
-            output += "<thead><th>Freq</th><th>From</th><th>To</th></thead>";
+            output += "<thead><th>Freq</th><th>Word</th><th>Meaning</th></thead>";
             for (let i = 0; i < response.length; i++) {
                 output += "<tr>";
                 let entry = response[i];

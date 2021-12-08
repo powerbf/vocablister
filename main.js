@@ -64,7 +64,7 @@ function cleanText(text)
 // return array of sentence
 function splitSentences(text) {
     var sentences = text.match(/[^\s].*?([\.\?!;]|$)/g);
-    if (typeof sentences === 'undefined')
+    if (sentences == null)
         return [];
     else
         return sentences;
@@ -72,7 +72,7 @@ function splitSentences(text) {
 
 function splitWords(text) {
     var words = text.match(/[^ \.\?!;]+/g);
-    if (typeof words === 'undefined')
+    if (words == null)
         return [];
     else
         return words;
@@ -82,6 +82,7 @@ function readDictionary(sourceLang, targetLang, filename) {
     var dict = new Dictionary(sourceLang, targetLang);
     console.log("Reading " + filename + "...")
 
+    var startTime = new Date();
     var lineReader = new readlines(filename);
 
     let count = 0;
@@ -98,7 +99,11 @@ function readDictionary(sourceLang, targetLang, filename) {
         } 
     }
 
-    console.log("Loaded " + count + " entries");
+    var duration = new Date() - startTime;
+    var durStr = (duration < 1000 ? duration.toString() + " ms"
+                                  : (duration/1000).toString() + " seconds");
+
+    console.log("Loaded " + count + " dictionary entries in " + durStr);
     return dict;
 }
 
@@ -124,28 +129,18 @@ function lookup(dict, sourceLang, word) {
     return results;
 }
 
-function _sortByFrequency(meanings) {
-    var temp = {};
-    for (let i = 0; i < meanings.length; i++) {
-        let freq = meanings[i].frequency;
-        if (!(freq in temp))
-            temp[freq] = [];
-        temp[freq].push(meanings[i]);
-    }
-
-    var result = [];
-    for (var key in Object.keys(temp).sort()) {
-        result.concat(temp[key]);
-    }
-    return result;
-}
-
 function sortByFrequency(meanings)
 {
     return meanings.sort((a, b) => {
         if (a.frequency < b.frequency)
             return -1;
         else if (b.frequency < a.frequency)
+            return 1;
+        // if frequency is equal then put entries without annotations in the source
+        // language first - they are likely to be more common
+        else if (!a.source.includes("[") && b.source.includes("["))
+            return -1;
+        else if (a.source.includes("[") && !b.source.includes("["))
             return 1;
         else
             return 0;
@@ -230,8 +225,12 @@ function process(requestData) {
     // put X+ if it's not in the frequency list
     var numFreqs = sourceLang.getFrequencyListSize();
     for (var res of results) {
-        if (res.frequency > numFreqs)
-            res.freq = numFreqs.toString() + "+";
+        if (res.frequency > numFreqs) {
+            if (res.target == "???")
+                res.freq = "";
+            else
+                res.freq = numFreqs.toString() + "+";
+        }
         else
             res.freq = res.frequency.toString();
     }

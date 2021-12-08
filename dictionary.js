@@ -10,18 +10,29 @@ module.exports = class Dictionary {
 
     addEntry(source, target) {
         // source is the full source language entry, but key is stripped down
-        var key = source.replace(/\s*\[[^\]]*\]\s*/g, "");
-        key = key.replace(/\s*\([^\)]*\)\s*/g, "");
-        key = key.replace(/\s*\{[^\}]*\}\s*/g, "");
+
+        // remove bracketed annotations
+        var key = source.replace(/\[[^\]]*\]/g, "");
+        key = key.replace(/\([^\)]*\)/g, "");
+        key = key.replace(/\{[^\}]*\}/g, "");
+        key = key.replace(/<[^>]*>/g, "");
+
+        if (key.includes(" ")) {
+            // remove annotations like sb., sth., etc.
+            key = key.replace(/[^\s0-9]+\./, "");
+        }
+
+        // condense spaces left over from above substitutions
+        key = key.replace(/\s+/g, " ").trim();
+
+        // ignore multi-word entries
+        if (key.includes(" "))
+            return false;
 
         var entry = {};
         entry["key"] = key;
         entry["source"] = source;
         entry["target"] = target;
-
-        // ignore multi-word entries
-        if (key.includes(" "))
-            return false;
 
         if (!(key in this.entries))
             this.entries[key] = [];

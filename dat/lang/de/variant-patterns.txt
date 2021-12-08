@@ -1,35 +1,38 @@
 # rules for converting variant to canonical form
 
 # regular verb conjugation - present
-([a-zäöü].+)e,$1en
-([a-zäöü].+)st,$1en
-([a-zäöü].+)t,$1en
-([a-zäöü].+d)et,$1en
-([a-zäöü].+d)est,$1en
-([a-zäöü].+t)et,$1en
-([a-zäöü].+d)test,$1en
+^([a-zäöü].+)e$,$1en
+^([a-zäöü].+)st$,$1en
+^([a-zäöü].+)t$,$1en
+^([a-zäöü].+d)et$,$1en
+^([a-zäöü].+d)est$,$1en
+^([a-zäöü].+t)et$,$1en
+^([a-zäöü].+d)test$,$1en
 # regular verb conjugation - imperative
-([a-zäöü].+),$1en
+^([a-zäöü].+)$,$1en
 # regular verb conjugation - past
-([a-zäöü].+)te,$1en
-([a-zäöü].+)test,$1en
-([a-zäöü].+)ten,$1en
-([a-zäöü].+)tet,$1en
+^([a-zäöü].+)te,$1en
+^([a-zäöü].+)test$,$1en
+^([a-zäöü].+)ten$,$1en
+^([a-zäöü].+)tet$,$1en
 # verb conjugation - perfect
-ge(..+)t,$1en
-ge(..+)en,$1en
+ge(..+)t$,$1en
+ge(..+)en$,$1en
+# verb conjugation - zu inserted after prefix
+^([a-zäöü].+)zu(..+)t$,$1$2en
+^([a-zäöü].+)zu(..+)en$,$1$2en
 
 # declination of adjectives and substantives
-(..+)e,$1
-(..+)er,$1
-(..+)es,$1
-(..+)en,$1
-(..+)em,$1
+^(..+)e$,$1
+^(..+)er$,$1
+^(..+)es$,$1
+^(..+)en$,$1
+^(..+)em$,$1
 
 # substantives - plural/genitive to singlular
-([A-ZÄÖÜ].+)s,$1
-([A-ZÄÖÜ].+)es,$1
-([A-ZÄÖÜ].+)e,$1
-([A-ZÄÖÜ].+)n,$1
-([A-ZÄÖÜ].+)en,$1
-#([A-ZÄÖÜ].+)er,$1 - covered above
+^([A-ZÄÖÜ].+)s$,$1
+^([A-ZÄÖÜ].+)es$,$1
+^([A-ZÄÖÜ].+)e$,$1
+^([A-ZÄÖÜ].+)n$,$1
+^([A-ZÄÖÜ].+)en$,$1
+#^([A-ZÄÖÜ].+)er$,$1 - covered above
