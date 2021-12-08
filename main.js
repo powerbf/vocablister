@@ -169,8 +169,8 @@ function process(requestData) {
         for (let j = 0; j < words.length; j++) {
             let word = words[j];
 
-            // ignore numbers
-            if (word.match(/^[0-9\.,]*$/))
+            // ignore anything which is all numbers and/or punctuation
+            if (word.match(/^[0-9\.,\?!\-]*$/))
                 continue;
 
             if (lookedUp[word])
@@ -208,7 +208,7 @@ function process(requestData) {
                 if (prevLookedUpLower)
                     continue;
                 let entry = {source:word, target:"???"};
-                entry.frequency = Number.MAX_VALUE;
+                entry.frequency = sourceLang.getFrequencyRank(word);
                 results.push(entry);
             }
             else {
