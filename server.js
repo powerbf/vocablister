@@ -68,7 +68,7 @@ function handlePostRequest(req, res) {
         }
         catch (err) {
             let response = {};
-            response.error = "Something went wrong";
+            response.error = "Something went wrong: " + err.message;
             res.end(JSON.stringify(response));
         }
     });

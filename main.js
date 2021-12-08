@@ -116,11 +116,10 @@ function init() {
     //de_en.addEntry("Hund", "dog");
 }
 
-var lookedUp = {}
+var searched = {}
 
 // a simple lookup of a word
 function lookup(dict, sourceLang, word) {
-    lookedUp[word] = true;
     var results = dict.lookup(word);
     if (results.length > 0) {
         var freq = sourceLang.getFrequencyRank(word);
@@ -131,6 +130,25 @@ function lookup(dict, sourceLang, word) {
         }
     }
     return results;
+}
+
+function findMeanings(dict, sourceLang, word) {
+    searched[word] = true;
+
+    // first look up the word itself
+    var meanings = lookup(dict, sourceLang, word);
+
+    // now lookup and words that it might be a variant of
+    let canonicals = sourceLang.getCanonicals(word);
+    for (let c = 0; c < canonicals.length; c++) {
+        let canonical = canonicals[c];
+        let extras = lookup(dict, sourceLang, canonical);
+        if (extras.length > 0) {
+            meanings = meanings.concat(extras);
+        }
+    }
+
+    return meanings;
 }
 
 function sortByFrequencyandQuality(meanings)
@@ -221,6 +239,14 @@ function removeDuplicates(entries)
     return results;
 }
 
+function anyBelowThreshold(freqThreshold, meanings) {
+    for (let m of meanings) {
+        if (m.frequency <= freqThreshold)
+            return true;
+    }
+    return false;
+}
+
 function process(requestData) {
     var sourceLang = languages[requestData["source_lang"]];
     var freqThreshold = requestData["freqThreshold"];
@@ -230,7 +256,7 @@ function process(requestData) {
     var dictionary = dictionaries["de-en"];
 
     var results = [];
-    lookedUp = {};
+    searched = {};
 
     var sentences = splitSentences(text);
     for (let i = 0; i < sentences.length; i++) {
@@ -243,55 +269,44 @@ function process(requestData) {
             if (word.match(/^[0-9\.,\?!\-]*$/))
                 continue;
 
-            if (lookedUp[word])
+            if (sourceLang.getFrequencyRank(word) <= freqThreshold) {
                 continue;
-
-            let meanings = lookup(dictionary, sourceLang, word);
-            if (meanings.length > 0 && meanings[0].frequency <= freqThreshold)
-                    continue;
-
-            // may be uppercase because it starts a sentence
-            // try to lookup up word in lowercase
-            let lower = word.toLowerCase();
-            let prevLookedUpLower = false;
-            if (lower != word) {
-                prevLookedUpLower = lookedUp[lower];
-                if (!prevLookedUpLower) {
-                    let lowerMeanings = lookup(dictionary, sourceLang, lower);
-                    if (lowerMeanings.length > 0 && lowerMeanings[0].frequency <= freqThreshold)
-                        continue;
-                    meanings = meanings.concat(lowerMeanings);
-                }
             }
 
-            let canonicals = sourceLang.getCanonicals(word);
-            for (let c = 0; c < canonicals.length; c++) {
-                let canonical = canonicals[c];
-                let extras = lookup(dictionary, sourceLang, canonical);
-                if (extras.length > 0) {
-                    //console.log("Adding results for " + canonical + " to results for " + word);
-                    meanings = meanings.concat(extras);
-                }
+            if (searched[word])
+                continue;
+
+            let meanings = findMeanings(dictionary, sourceLang, word);
+            if(anyBelowThreshold(freqThreshold, meanings))
+                continue;
+
+            // may be uppercase because it starts a sentence
+            // try to lookup word in lowercase
+            let lower = word.toLowerCase();
+            if (lower != word) {
+                let lowerMeanings = findMeanings(dictionary, sourceLang, lower);
+                if(anyBelowThreshold(freqThreshold, lowerMeanings))
+                    continue;
+                meanings = meanings.concat(lowerMeanings);
             }
 
             if (meanings.length == 0) {
-                if (prevLookedUpLower || !showAll)
-                    continue;
+                // try capitalising first letter
+                let upper = word[0].toUpperCase() + word.substring(1);
+                if (upper != word) {
+                    let upperMeanings = findMeanings(dictionary, sourceLang, lower);
+                    if(anyBelowThreshold(freqThreshold, upperMeanings))
+                        continue;
+                    meanings = meanings.concat(upperMeanings);    
+                }
+            }
+
+            if (showAll && meanings.length == 0) {
                 let entry = {key: word, source: word, target:"???"};
                 entry.frequency = sourceLang.getFrequencyRank(word);
                 meanings.push(entry);
             }
 
-
-            let ignore = false;
-            for (var m of meanings) {
-                if (m.frequency <= freqThreshold) {
-                    ignore = true;
-                    break;
-                }
-            }
-            if (ignore)
-                continue;
             results = results.concat(sortByFrequencyandQuality(meanings));
         }
     }
