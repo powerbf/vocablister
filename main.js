@@ -140,7 +140,9 @@ function sortByFrequencyandQuality(meanings)
 
     for (let entry of meanings) {
         // does the meaning relate to a specific context?
-        entry.specific = (entry.source.match(/[^\s].*\[/) != null);
+        entry.specific = (entry.source.includes("(") ||
+                          entry.source.match(/[^\s].*\[/) != null);
+        entry.vulgar = (entry.source.includes("vulg."));
         // count definitions
         entry.defCount = (entry.target.match(/,/g) || []).length + 1;
     }
@@ -182,7 +184,8 @@ function filterResults(entries)
             lastKept = entry;
         }
         else {
-            if (!entry.specific || entry.defCount >= 5) {
+            // another definition for the same word, but could be important enough to keep
+            if (!entry.specific || (entry.defCount >= 5 && !entry.vulgar)) {
                 filtered.push(entry);
                 lastKept = entry;
             }
