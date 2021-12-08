@@ -192,12 +192,15 @@ function sortByFrequencyandQuality(meanings)
         return meanings;
 
     for (let entry of meanings) {
-        // does the meaning relate to a specific context?
-        entry.specific = (entry.source.includes("(") ||
-                          entry.source.match(/[^\s].*\[/) != null);
-        entry.vulgar = (entry.source.includes("vulg."));
         // count definitions
         entry.defCount = (entry.target.match(/,/g) || []).length + 1;
+
+        // does the meaning relate to a specific context?
+        entry.specific = (entry.source.includes("(") ||
+                          entry.source.match(/[^\s].*\[/) != null ||
+                          (entry.defCount == 1 && entry.target.match(/[^\s].*\[/) != null));
+
+        entry.vulgar = (entry.source.includes("vulg."));
     }
 
     return meanings.sort((a, b) => {
