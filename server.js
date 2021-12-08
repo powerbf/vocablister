@@ -64,7 +64,10 @@ function handlePostRequest(req, res) {
             if (response.error == null)
                 response.results = main.process(data);
 
-            res.end(JSON.stringify(response));
+            let responseStr = JSON.stringify(response)
+            responseStr = responseStr.replace("<", "&lt;");
+            responseStr = responseStr.replace(">", "&gt;");
+            res.end(responseStr);
         }
         catch (err) {
             let response = {};
