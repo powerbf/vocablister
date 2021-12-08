@@ -9,6 +9,7 @@ module.exports = class Language {
         // explicit variants that don't fit a pattern, like rennen -> rannte
         this.explicitVariants = {};
         this.frequency = {};
+        this.frequencyCount = 0;
     }
 
     addVariantPattern(variant, canonical) {
@@ -52,7 +53,8 @@ module.exports = class Language {
 
     addToFrequencyList(word) {
         // assign rank based on number of words already in the list
-        this.frequency[word] = Object.keys(this.frequency).length + 1;
+        this.frequencyCount++;
+        this.frequency[word] = this.frequencyCount;
     }
 
     getFrequencyRank(word) {
@@ -68,6 +70,6 @@ module.exports = class Language {
     }
 
     getFrequencyListSize() {
-        return Object.keys(this.frequency).length;
+        return this.frequencyCount;
     }
 }

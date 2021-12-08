@@ -32,6 +32,7 @@ module.exports = class LanguageReader {
         var count = 0;
         var lineReader = new readlines(filename);
 
+        var startTime = new Date();
         while (line = lineReader.next()) {
             line = line.toString().trim();
             if (line != "" && line[0] != '#')
@@ -43,8 +44,11 @@ module.exports = class LanguageReader {
                 }
             } 
         }
+        var duration = new Date() - startTime;
+        var durStr = (duration < 1000 ? duration.toString() + " ms"
+                                      : (duration/1000).toString() + " seconds");
 
-        console.log("Loaded " + count + " frequent words " + lang.code);
+        console.log("Loaded " + count + " frequent words in " + durStr);
     }
 
     readVariantPatterns(lang, dir) {
