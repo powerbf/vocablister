@@ -223,8 +223,8 @@ function removeDuplicates(entries)
 
 function process(requestData) {
     var sourceLang = languages[requestData["source_lang"]];
-    var freqThreshold = parseInt(requestData["freqThreshold"]);
-    var showAll = (requestData["show_all"] == true);
+    var freqThreshold = requestData["freqThreshold"];
+    var showAll = requestData["show_all"];
     var text = cleanText(requestData["text"]);
 
     var dictionary = dictionaries["de-en"];

@@ -41,7 +41,7 @@ function form2object() {
     var result = {};
     result["source_lang"] = $("#source_lang").val();
     result["target_lang"] = $("#target_lang").val();
-    result["freqThreshold"] = $('#freqThreshold').val();
+    result["freqThreshold"] = parseInt($('#freqThreshold').val());
     result["show_all"] = $('#show_all').is(":checked")
     result["text"] = $('textarea#data').val();
     return result;

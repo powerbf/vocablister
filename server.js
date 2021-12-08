@@ -31,26 +31,45 @@ server.listen(port, hostname, () => {
   console.log(`Server running at http://${hostname}:${port}/`)
 })
 
-function collectRequestData(request, callback) {
-    let body = '';
-    request.on('data', chunk => {
-        body += chunk.toString();
-    });
-    request.on('end', () => {
-        //console.log(body);
-        callback(JSON.parse(body));
-    });
-}
-
 function handlePostRequest(req, res) {
-    collectRequestData(req, data => {
-        var response = {};
+    let body = '';
+    req.on('data', chunk => {
+        body += chunk.toString();
+        if (body.length > 100000) {
+            res.end(JSON.stringify({error: "Request too big"}));
+            req.destroy();
+        }
+    });
+    req.on('end', () => {
         try {
-            response.results = main.process(data);
+            console.log("Request size: " + body.length);
+            let data = JSON.parse(body);
+            let response = {};
+
+            // validate input
+            let sourceLang = data["source_lang"];
+            let targetLang = data["target_lang"];
+            if (typeof sourceLang != "string" || sourceLang.length != 2)
+                response.error = "Invalid input";
+            else if (typeof targetLang != "string" || targetLang.length != 2)
+                response.error = "Invalid input";
+            else if (typeof data["freqThreshold"] != "number")
+                response.error = "Invalid input";
+            else if (typeof data["show_all"] != "boolean")
+                response.error = "Invalid input";
+            else if (typeof data["text"] != "string")
+                response.error = "Invalid input";
+
+            // if all good then process the request
+            if (response.error == null)
+                response.results = main.process(data);
+
+            res.end(JSON.stringify(response));
         }
         catch (err) {
+            let response = {};
             response.error = "Something went wrong";
+            res.end(JSON.stringify(response));
         }
-        res.end(JSON.stringify(response));
     });
 }
