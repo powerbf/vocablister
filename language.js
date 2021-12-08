@@ -52,7 +52,7 @@ module.exports = class Language {
 
     addToFrequencyList(word) {
         // assign rank based on number of words already in the list
-        this.frequency[word] = Object.keys(this.frequency).length;
+        this.frequency[word] = Object.keys(this.frequency).length + 1;
     }
 
     getFrequencyRank(word) {
