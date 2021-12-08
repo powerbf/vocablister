@@ -148,7 +148,7 @@ function lookupWordAndCanonicals(dict, sourceLang, word) {
         }
     }
 
-    return meanings;
+    return sortByFrequencyandQuality(meanings);
 }
 
 function findMeanings(dictionary, sourceLang, freqThreshold, showAll, word) {
@@ -315,7 +315,7 @@ function process(requestData) {
                 continue;
 
             let meanings = findMeanings(dictionary, sourceLang, freqThreshold, showAll, word);
-            results = results.concat(sortByFrequencyandQuality(meanings));
+            results = results.concat(meanings);
         }
     }
 
