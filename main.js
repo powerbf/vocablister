@@ -117,39 +117,84 @@ function init() {
 }
 
 var lookedUp = {}
+
+// a simple lookup of a word
 function lookup(dict, sourceLang, word) {
     lookedUp[word] = true;
     var results = dict.lookup(word);
     if (results.length > 0) {
         var freq = sourceLang.getFrequencyRank(word);
+        var inFrequencyList = freq <= sourceLang.getFrequencyListSize();
         for (let i = 0; i < results.length; i++) {
             results[i].frequency = freq;
+            results[i].inFrequencyList = inFrequencyList;
         }
     }
     return results;
 }
 
-function sortByFrequency(meanings)
+function sortByFrequencyandQuality(meanings)
 {
+    if (meanings.length < 2)
+        return meanings;
+
+    for (let entry of meanings) {
+        // does the meaning relate to a specific context?
+        entry.specific = (entry.source.match(/[^\s].*\[/) != null);
+        // count definitions
+        entry.defCount = (entry.target.match(/,/g) || []).length + 1;
+    }
+
     return meanings.sort((a, b) => {
-        if (a.frequency < b.frequency)
-            return -1;
-        else if (b.frequency < a.frequency)
-            return 1;
-        // if frequency is equal then put entries without annotations in the source
-        // language first - they are likely to be more common
-        else if (!a.source.includes("[") && b.source.includes("["))
-            return -1;
-        else if (a.source.includes("[") && !b.source.includes("["))
-            return 1;
+        if (a.frequency != b.frequency)
+            return (a.frequency < b.frequency ? -1 : 1);
+        else if (a.specific != b.specific)
+            return (b.specific ? -1 : 1);
+        else if (a.defCount != b.defCount)
+            return (a.defCount > b.defCount ? -1 : 1);
         else
             return 0;
     });
 }
 
+function isDifferentWord(a, b) {
+    if (a.frequency != b.frequency)
+        return true;
+    else if (a.isInFrequencyList)
+        return false;
+    else
+        return (a.key != b.key);
+}
+
+function filterResults(entries)
+{
+    if (entries.length < 2)
+        return entries;
+    
+    // first one should be the best match, so always take it
+    var filtered = [entries[0]];
+    var lastKept = entries[0];
+
+    for (let i = 1; i < entries.length; i++) {
+        let entry = entries[i];
+        if (isDifferentWord(entry, lastKept)) {
+            filtered.push(entry);
+            lastKept = entry;
+        }
+        else {
+            if (!entry.specific || entry.defCount >= 5) {
+                filtered.push(entry);
+                lastKept = entry;
+            }
+        }
+    }
+    return filtered;
+}
+
 function process(requestData) {
     var sourceLang = languages[requestData["source_lang"]];
     var freqThreshold = parseInt(requestData["freqThreshold"]);
+    var showAll = (requestData["show_all"] == true);
     var text = cleanText(requestData["text"]);
 
     var dictionary = dictionaries["de-en"];
@@ -200,7 +245,7 @@ function process(requestData) {
             }
 
             if (meanings.length == 0) {
-                if (prevLookedUpLower)
+                if (prevLookedUpLower || !showAll)
                     continue;
                 let entry = {key: word, source: word, target:"???"};
                 entry.frequency = sourceLang.getFrequencyRank(word);
@@ -217,7 +262,7 @@ function process(requestData) {
             }
             if (ignore)
                 continue;
-            results = results.concat(sortByFrequency(meanings));
+            results = results.concat(sortByFrequencyandQuality(meanings));
         }
     }
 
@@ -234,6 +279,9 @@ function process(requestData) {
         else
             res.freq = res.frequency.toString();
     }
+
+    if (!showAll)
+        results = filterResults(results);
 
     return results;
 }
