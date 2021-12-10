@@ -44,12 +44,12 @@ ge(..+)en$,$1en
 ^([A-ZÄÖÜ].+)istin$,$1ist,true
 ^([A-ZÄÖÜ].+)istinnen$,$1ist,true
 
-# for compound words ending with haben (e.g. vorhaben)
-^(..+)hab$,$1haben
-^(..+)habe$,$1haben
-^(..+)hast$,$1haben
-^(..+)hat$,$1haben
-^(..+)habt$,$1haben
-^(..+)hatte(st)?$,$1haben
-^(..+)habes?t$,$1haben
-^(..+)hätte(st|n|t)?$,$1haben
+# for verbs ending with haben (e.g. vorhaben)
+^([a-zäöü].+)hab$,$1haben
+^([a-zäöü].+)habe$,$1haben
+^([a-zäöü].+)hast$,$1haben
+^([a-zäöü].+)hat$,$1haben
+^([a-zäöü].+)habt$,$1haben
+^([a-zäöü].+)hatte(st)?$,$1haben
+^([a-zäöü].+)habes?t$,$1haben
+^([a-zäöü].+)hätte(st|n|t)?$,$1haben
