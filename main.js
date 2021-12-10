@@ -270,8 +270,15 @@ function findMeanings(word) {
         }
     }
 
-    return meanings;
+    if (meanings.length == 0) {
+        if (word.slice(-1) == "-")
+            return findMeanings(word.slice(0,-1));
+        else if (word.slice(0) == "-")
+            return findMeanings(word.slice(1));
     }
+
+    return meanings;
+}
 
 // returns a 2D array
 function findMeaningsOfWordParts(word) {
