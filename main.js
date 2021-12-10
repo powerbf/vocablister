@@ -14,6 +14,7 @@ var dictionaries = {};
 
 var dictionary;
 var sourceLang;
+var freqThreshold;
 var searched = {}
 
 function isWhitespace(ch) {
@@ -224,39 +225,50 @@ function lookupWordAndCanonicals(dict, sourceLang, word) {
     return sortByFrequencyandQuality(meanings);
 }
 
-function findMeanings(dictionary, sourceLang, freqThreshold, showAll, word) {
+function findMeanings(word) {
     let meanings = lookupWordAndCanonicals(dictionary, sourceLang, word);
-    if(anyBelowThreshold(freqThreshold, meanings))
-        return [];
+    if (anyBelowThreshold(freqThreshold, meanings)) {
+        // stop here because we're going to throw this away anyway
+        return meanings;
+    }
 
     // may be uppercase because it starts a sentence
     // try to lookup word in lowercase
     let lower = word.toLowerCase();
     if (lower != word) {
         let lowerMeanings = lookupWordAndCanonicals(dictionary, sourceLang, lower);
-        if(anyBelowThreshold(freqThreshold, lowerMeanings))
-            return [];
         meanings = meanings.concat(lowerMeanings);
     }
 
     if (meanings.length == 0) {
         // try capitalising first letter
-        let upper = word[0].toUpperCase() + word.substring(1);
+        let upper = word.slice(0,1).toUpperCase() + word.slice(1);
         if (upper != word) {
-            let upperMeanings = lookupWordAndCanonicals(dictionary, sourceLang, lower);
-            if(anyBelowThreshold(freqThreshold, upperMeanings))
-                return [];
-            meanings = meanings.concat(upperMeanings);    
+            meanings = lookupWordAndCanonicals(dictionary, sourceLang, upper); 
         }
     }
 
-    if (showAll && meanings.length == 0) {
-        let entry = {key: word, source: word, target:"???"};
-        entry.frequency = sourceLang.getFrequencyRank(word);
-        meanings.push(entry);
+    return meanings;
     }
 
-    return meanings;
+// returns a 2D array
+function findMeaningsOfWordParts(word) {
+    let results = [];
+    let rest = word;
+    let i = 1;
+    while (i < rest.length - 1) {
+        let searchTerm = rest.slice(i);
+        let meanings = findMeanings(searchTerm);
+        if (meanings.length == 0) {
+            i++;
+        }
+        else {
+            rest = rest.slice(0, i);
+            i = 0;
+            results.unshift(meanings);
+        }
+    }
+    return results;
 }
 
 function sortByFrequencyandQuality(meanings)
@@ -359,7 +371,7 @@ function anyBelowThreshold(freqThreshold, meanings) {
 }
 
 function process(requestData) {
-    var freqThreshold = requestData["freqThreshold"];
+    freqThreshold = requestData["freqThreshold"];
     var showAll = requestData["show_all"];
     var text = cleanText(requestData["text"]);
 
@@ -394,7 +406,30 @@ function process(requestData) {
             if (searched[word])
                 continue;
 
-            let meanings = findMeanings(dictionary, sourceLang, freqThreshold, showAll, word);
+            let meanings = findMeanings(word);
+
+            if (anyBelowThreshold(freqThreshold, meanings))
+                continue;
+
+            let gotResults = (meanings.length != 0);
+
+            if (meanings.length == 0) {
+                // try breaking word up
+                let partMeanings = findMeaningsOfWordParts(word);
+                gotResults = (partMeanings.length != 0);
+                
+                for (let m of partMeanings) {
+                    if (!anyBelowThreshold(freqThreshold, m))
+                        meanings = meanings.concat(m);
+                }
+            }
+
+            if (showAll && !gotResults) {
+                let entry = {key: word, source: word, target:"???"};
+                entry.frequency = sourceLang.getFrequencyRank(word);
+                meanings.push(entry);
+            }
+        
             results = results.concat(meanings);
         }
     }
