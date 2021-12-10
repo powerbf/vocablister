@@ -480,9 +480,12 @@ function process(requestData) {
                 continue;
 
             for (let j = i - 1; j >= 0; j--) {
-                let isWord = false;
                 let suffix = words[j].toLowerCase();
+                if (suffix.length < 3)
+                    continue;
+
                 let word = prefix + suffix;
+                let isWord = false;
                 let alreadySearched = searched[word];
 
                 let meanings = findMeanings(word);
