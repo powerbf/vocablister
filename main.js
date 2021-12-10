@@ -287,9 +287,23 @@ function findMeaningsOfWordParts(word) {
             i++;
         }
         else {
-            rest = rest.slice(0, i);
-            i = 0;
-            results.unshift(meanings);
+            let goodOnes = [];
+            for (let m of meanings) {
+                if (m.key.length <= 3 && m.frequency >= 100000) {
+                    // this is probably just noise
+                    continue;
+                }
+                goodOnes.push(m);
+            }
+
+            if (goodOnes.length == 0) {
+                i++;
+            }
+            else {
+                results.unshift(goodOnes);
+                rest = rest.slice(0, i);
+                i = 0;
+            }
         }
     }
     return results;
