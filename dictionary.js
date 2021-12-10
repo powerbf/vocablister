@@ -64,8 +64,7 @@ module.exports = class Dictionary {
                     else
                         return 0;
                 });
-                let target = targets.join(", ");
-                results.push({key: term, source: source, target: target});
+                results.push({key: term, source: source, targets: targets});
             }
             return results;
         }

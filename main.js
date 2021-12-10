@@ -326,26 +326,16 @@ function sortByFrequencyandQuality(entries)
         // does the meaning relate to a specific context?
         entry.specific = (entry.source.includes("(") ||
                           entry.source.match(/[^\s].*\[/) != null);
-
-        // in case of commas inside square brackets
-        let target = entry.target.replace("/\[[^\]*]/g", "[")
-
-        let meanings = target.split(",");
-        entry.defCount = meanings.length;
+        entry.vulgar = (entry.source.includes("vulg."));
+        entry.defCount = entry.targets.length;
 
         entry.specificTarget = true;
-        for (let meaning of meanings) {
-            if (!meaning.includes("[") && !meaning.includes("]")) {
-                entry.specificTarget = false;
-                break;
-            }
-            else if (meaning.startsWith("[")) {
+        for (let meaning of entry.targets) {
+            if (!meaning.includes("[") || meaning.startsWith("[")) {
                 entry.specificTarget = false;
                 break;
             }
         }
-
-        entry.vulgar = (entry.source.includes("vulg."));
     }
 
     return entries.sort((a, b) => {
@@ -510,10 +500,15 @@ function process(requestData) {
         }
     }
 
+    // concatenate meanings into a single string
+    for (let res of results) {
+        res.target = res.targets.join(",");
+    }
+
     // convert frequency to string
     // put X+ if it's not in the frequency list
     var numFreqs = sourceLang.getFrequencyListSize();
-    for (var res of results) {
+    for (let res of results) {
         if (res.frequency > numFreqs) {
             if (res.target == "???")
                 res.freq = "";
