@@ -29,14 +29,16 @@ ge(..+)en$,$1en
 ^(..+)en$,$1
 ^(..+)em$,$1
 
-# substantives - plural/genitive to singlular
+# substantives - plural to singlular
 ^([A-ZÄÖÜ].+)s$,$1
-^([A-ZÄÖÜ].+)es$,$1
-^([A-ZÄÖÜ].+)e$,$1
 ^([A-ZÄÖÜ].+)n$,$1
-^([A-ZÄÖÜ].+)en$,$1
+^([A-ZÄÖÜ].+)en?$,$1
 #^([A-ZÄÖÜ].+)er$,$1 - covered above
 ^([A-ZÄÖÜ].+)innen$,$1in
+
+# substantives - genitive to nominative
+#^([A-ZÄÖÜ].+)s$,$1 - covered above
+^([A-ZÄÖÜ].+)en?s$,$1
 
 # convert feminine nouns to masculine (as a last resort)
 ^([A-ZÄÖÜ].+)erin$,$1er,true
