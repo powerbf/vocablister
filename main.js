@@ -316,28 +316,47 @@ function findMeaningsOfWordParts(word) {
     return results;
 }
 
-function sortByFrequencyandQuality(meanings)
+function sortByFrequencyandQuality(entries)
 {
-    if (meanings.length < 2)
-        return meanings;
+    if (entries.length < 2)
+        return entries;
 
-    for (let entry of meanings) {
-        // count definitions
-        entry.defCount = (entry.target.match(/,/g) || []).length + 1;
+    for (let entry of entries) {
 
         // does the meaning relate to a specific context?
         entry.specific = (entry.source.includes("(") ||
-                          entry.source.match(/[^\s].*\[/) != null ||
-                          (entry.defCount == 1 && entry.target.match(/[^\s].*\[/) != null));
+                          entry.source.match(/[^\s].*\[/) != null);
+
+        // in case of commas inside square brackets
+        let target = entry.target.replace("/\[[^\]*]/g", "[")
+
+        let meanings = target.split(",");
+        entry.defCount = meanings.length;
+
+        entry.specificTarget = true;
+        for (let meaning of meanings) {
+            if (!meaning.includes("[") && !meaning.includes("]")) {
+                entry.specificTarget = false;
+                break;
+            }
+            else if (meaning.startsWith("[")) {
+                entry.specificTarget = false;
+                break;
+            }
+        }
 
         entry.vulgar = (entry.source.includes("vulg."));
     }
 
-    return meanings.sort((a, b) => {
+    return entries.sort((a, b) => {
         if (a.frequency != b.frequency)
             return (a.frequency < b.frequency ? -1 : 1);
+        else if (a.vulgar != b.vulgar)
+            return (b.vulgar ? -1 : 1);
         else if (a.specific != b.specific)
             return (b.specific ? -1 : 1);
+        else if (a.specificTarget != b.specificTarget)
+            return (b.specificTarget ? -1 : 1);
         else if (a.defCount != b.defCount)
             return (a.defCount > b.defCount ? -1 : 1);
         else
@@ -362,19 +381,31 @@ function filterResults(entries)
     // first one should be the best match, so always take it
     var filtered = [entries[0]];
     var lastKept = entries[0];
+    let maxDefCount = entries[0].defCount;
 
     for (let i = 1; i < entries.length; i++) {
         let entry = entries[i];
         if (isDifferentWord(entry, lastKept)) {
             filtered.push(entry);
             lastKept = entry;
+            maxDefCount = entry.defCount;
         }
         else {
             // another definition for the same word, but could be important enough to keep
-            if (!entry.specific || (entry.defCount >= 5 && !entry.vulgar)) {
-                filtered.push(entry);
-                lastKept = entry;
+            if (entry.vulgar && !lastKept.vulgar)
+                continue;
+            else if (entry.defCount < 5) {
+                if (entry.specific && !lastKept.specific)
+                    continue;
+                else if (entry.specific && entry.specificTarget)
+                    continue;
+                else if (maxDefCount >= 5)
+                    continue;
             }
+
+            filtered.push(entry);
+            lastKept = entry;
+            maxDefCount = Math.max(entry.defCount, maxDefCount);
         }
     }
     return filtered;
