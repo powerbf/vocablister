@@ -336,8 +336,7 @@ function sortByFrequencyandQuality(entries)
     for (let entry of entries) {
 
         // does the meaning relate to a specific context?
-        entry.specific = (entry.source.includes("(") ||
-                          entry.source.match(/[^\s].*\[/) != null);
+        entry.specific = (entry.source.match(/[^\s].*\[/) != null);
         entry.vulgar = (entry.source.includes("vulg."));
         entry.defCount = entry.targets.length;
 
@@ -398,6 +397,8 @@ function filterResults(entries)
                 continue;
             else if (entry.defCount < 5) {
                 if (entry.specific && !lastKept.specific)
+                    continue;
+                else if (entry.specificTarget && !lastKept.specificTarget)
                     continue;
                 else if (entry.specific && entry.specificTarget)
                     continue;
