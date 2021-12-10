@@ -6,6 +6,31 @@ var Dictionary = require('./dictionary.js');
 var Language = require('./language.js');
 var LanguageReader = require('./language-reader.js');
 
+const SOFT_HYPHEN = '\u00AD';
+
+// globals - yuck
+var languages = {};
+var dictionaries = {};
+
+var dictionary;
+var sourceLang;
+var searched = {}
+
+function isWhitespace(ch) {
+    if (" \t\r\n".includes(ch))
+        return true;
+    // non-breaking spaces
+    if ("\u00A0\u202F\u2007\u2060".includes(ch))
+        return true;
+    return false;
+}
+
+function isControlChar(ch) {
+    if (ch <= '\u001F' || ( ch >= '\u007F' && ch <= '\u009F'))
+        return !isWhitespace(ch);
+    return false;
+}
+
 function isPunctuation(ch) {
     // basic latin
     if ((ch >= '\u0021' && ch <= '\u002F') || (ch >= '\u003A' && ch <= '\u0040')
@@ -38,17 +63,19 @@ function cleanText(text)
 
     for (let i = 0; i < text.length; i++) {
         var ch = text[i];
-        if (ch <= '\u001F' || ( ch >= '\u007F' && ch <= '\u009F')) {
-            // replace control chars with spaces
+        if (isWhitespace(ch)) {
             result += ' ';
+        }
+        else if (isControlChar(ch)) {
+            // ignore
         }
         else if (isPunctuation(ch)) {
-            // only keep relevant punctuation
-            result += (isSentenceTerminator(ch) || isWordPunctuation(ch) ? ch : ' ');
-        }
-        else if(ch == '\u00A0' || ch == '\u202F' || ch == '\u2007' || ch == '\u2060') {
-            // replace non-breaking spaces with normal space
-            result += ' ';
+            if (ch == SOFT_HYPHEN)
+                result += ''; // ignore
+            else if (isSentenceTerminator(ch) || isWordPunctuation(ch))
+                result += ch; // keep
+            else
+                result += ' '; // replace with space
         }
         else {
             result += ch;
@@ -61,21 +88,70 @@ function cleanText(text)
     return result;
 }
 
-// return array of sentence
-function splitSentences(text) {
-    var sentences = text.match(/[^\s].*?([\.\?!;]|$)/g);
-    if (sentences == null)
-        return [];
-    else
-        return sentences;
+function isKnownWord(word) {
+    if (sourceLang.getFrequencyRank(word) <= sourceLang.getFrequencyListSize())
+        return true;
+    else if (dictionary.lookup(word).length > 0)
+        return true;
+    return false;
 }
 
-function splitWords(text) {
-    var words = text.match(/[^ \.\?!;]+/g);
-    if (words == null)
-        return [];
-    else
-        return words;
+function findFirstOf(str, pos, chars)
+{
+    while (pos < str.length) {
+        if (chars.includes(str[pos]))
+            return pos;
+        pos++;
+    }
+    return pos;
+}
+
+function getNextSentenceWords(text, pos, words) {
+
+    let start = pos;
+    let end = -1;
+    let sentenceEnded = false;
+
+    do {
+        end = findFirstOf(text, start, " !?;");
+        end++;
+        let word = text.slice(start, end).trim();
+        let done = false;
+        do {
+            let last = word.slice(-1);
+            if (last == " ") {
+                word = word.slice(0, -1);
+            }
+            else if (last == "!" || last == "?" || last == ";") {
+                sentenceEnded = true;
+                word = word.slice(0, -1);
+            }
+            else if (last == ".") {
+                // could be end of sentence, but could also be an abbreviation
+                if (word.match(/^[0-9\.\-\?!;]+$/)) {
+                    // all numbers and/or punctuation
+                    done = true;
+                    sentenceEnded = (word.match(/[0-9]+/) == null);
+                }
+                else if (isKnownWord(word)) {
+                    done = true;
+                }
+                else {
+                    sentenceEnded = true;
+                    word = word.slice(0, -1);
+                }
+            }
+            else {
+                done = true;
+            }
+        } while (!done);
+        if (word.length > 0) {
+            words.push(word);
+        }
+        start = end;
+    } while (!sentenceEnded && start < text.length);
+
+    return end;
 }
 
 function readDictionary(sourceLang, targetLang, filename) {
@@ -107,16 +183,13 @@ function readDictionary(sourceLang, targetLang, filename) {
     return dict;
 }
 
-var languages = {};
-var dictionaries = {};
+
 function init() {
     languages = new LanguageReader().readLanguages();
     var de_en = readDictionary("de", "en", "./dat/dict/de-en.txt");
     dictionaries["de-en"] = de_en;
     //de_en.addEntry("Hund", "dog");
 }
-
-var searched = {}
 
 // a simple lookup of a word
 function lookup(dict, sourceLang, word) {
@@ -286,30 +359,37 @@ function anyBelowThreshold(freqThreshold, meanings) {
 }
 
 function process(requestData) {
-    var sourceLang = languages[requestData["source_lang"]];
     var freqThreshold = requestData["freqThreshold"];
     var showAll = requestData["show_all"];
     var text = cleanText(requestData["text"]);
 
-    var dictionary = dictionaries["de-en"];
+    var sourceLangCode = requestData["source_lang"];
+    sourceLang = languages[sourceLangCode];
+    if (sourceLang == null) {
+        throw new Error("Language '" + sourceLangCode + "' unknown");
+    }
+
+    dictionary = dictionaries["de-en"];
 
     var results = [];
     searched = {};
 
-    var sentences = splitSentences(text);
-    for (let i = 0; i < sentences.length; i++) {
-        console.log(i.toString() + ": " + sentences[i]);
-        let words = splitWords(sentences[i]);
-        for (let j = 0; j < words.length; j++) {
-            let word = words[j];
+    var pos = 0;
+    while (pos < text.length) {
+        let words = [];
+        pos = getNextSentenceWords(text, pos, words);
 
-            // ignore anything which is all numbers and/or punctuation
-            if (word.match(/^[0-9\.,\?!\-]*$/))
+        //let sentence = words.join(" ");
+        //console.log(sentence);
+
+        for (let word of words) {
+
+            // ignore anything that is all numbers and/or punctuation
+            if (word.match(/^[0-9\.\-\?!;]+$/))
                 continue;
 
-            if (sourceLang.getFrequencyRank(word) <= freqThreshold) {
+            if (sourceLang.getFrequencyRank(word) <= freqThreshold)
                 continue;
-            }
 
             if (searched[word])
                 continue;
