@@ -12,11 +12,11 @@ module.exports = class Language {
         this.frequencyCount = 0;
     }
 
-    addVariantPattern(variant, canonical) {
+    addVariantPattern(variant, canonical, lastResort) {
         //canonical = new RegExp(canonical);
         variant = new RegExp(variant);
 
-        var entry = { variant: variant, canonical: canonical };
+        var entry = { variant: variant, canonical: canonical, lastResort: lastResort };
         this.variantPatterns.push(entry);
     }
 
@@ -28,21 +28,27 @@ module.exports = class Language {
         return this.explicitVariants[variant].push(canonical);
     }
 
-    getCanonicals(word) {
-        var canonicals = this.explicitVariants[word];
-        if (typeof canonicals === 'undefined') {
-            // no explicit variants
-            canonicals = [];
-        }
-        else {
-            // create a copy
-            canonicals = canonicals.slice();
+    getCanonicals(word, lastResort) {
+        var canonicals = [];
+
+        if (!lastResort) {
+            canonicals = this.explicitVariants[word];
+            if (typeof canonicals === 'undefined') {
+                // no explicit variants
+                canonicals = [];
+            }
+            else {
+                // create a copy
+                canonicals = canonicals.slice();
+            }
         }
 
         // derive canonicals from patterns
         this.variantPatterns.forEach(function (value, index, array) {
+            if (value.lastResort != lastResort)
+                return;
             let canonical = word.replace(value.variant, value.canonical);
-             if (canonical != word && ! canonicals.includes(canonical)) {
+            if (canonical != word && ! canonicals.includes(canonical)) {
                 //console.log("Canonical: " + word + " -> " + canonical +
                 //            " (" + value.variant + " -> " + value.canonical + ")");
                 canonicals.push(canonical);

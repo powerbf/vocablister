@@ -230,13 +230,18 @@ function lookupWordAndCanonicals(dict, sourceLang, word) {
     var meanings = lookup(dict, sourceLang, word);
 
     // now lookup and words that it might be a variant of
-    let canonicals = sourceLang.getCanonicals(word);
-    for (let c = 0; c < canonicals.length; c++) {
-        let canonical = canonicals[c];
-        let extras = lookup(dict, sourceLang, canonical);
-        if (extras.length > 0) {
-            meanings = meanings.concat(extras);
+    for (let lastResort of [false, true]) {
+        let canonicals = sourceLang.getCanonicals(word, lastResort);
+        for (let c = 0; c < canonicals.length; c++) {
+            let canonical = canonicals[c];
+            let extras = lookup(dict, sourceLang, canonical);
+            if (extras.length > 0) {
+                meanings = meanings.concat(extras);
+            }
         }
+        // only go to last resort if nothing found beforehand
+        if (meanings.length != 0)
+            break;
     }
 
     return sortByFrequencyandQuality(meanings);

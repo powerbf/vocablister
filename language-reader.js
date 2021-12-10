@@ -64,7 +64,8 @@ module.exports = class LanguageReader {
             {
                 let fields = line.split(',');
                 if (fields.length >= 2) {
-                    lang.addVariantPattern(fields[0], fields[1]);
+                    let lastResort = (fields.length >=3 && fields[2].toLowerCase() == "true");
+                    lang.addVariantPattern(fields[0], fields[1], lastResort);
                     count++;
                 }
             } 

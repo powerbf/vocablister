@@ -36,3 +36,10 @@ ge(..+)en$,$1en
 ^([A-ZÄÖÜ].+)n$,$1
 ^([A-ZÄÖÜ].+)en$,$1
 #^([A-ZÄÖÜ].+)er$,$1 - covered above
+^([A-ZÄÖÜ].+)innen$,$1in
+
+# convert feminine nouns to masculine (as a last resort)
+^([A-ZÄÖÜ].+)erin$,$1er,true
+^([A-ZÄÖÜ].+)erinnen$,$1er,true
+^([A-ZÄÖÜ].+)istin$,$1ist,true
+^([A-ZÄÖÜ].+)istinnen$,$1ist,true
