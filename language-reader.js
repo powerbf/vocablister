@@ -21,6 +21,7 @@ module.exports = class LanguageReader {
         var lang = new Language(code);
         var dir = this.languagesDir + "/" + code;
         this.readVariantPatterns(lang, dir);
+        this.readSeparablePrefixes(lang, dir);
         this.readFrequencyList(lang, dir);
         return lang;
     }
@@ -71,7 +72,28 @@ module.exports = class LanguageReader {
             } 
         }
 
-        console.log("Read " + count + " variant patterns for " + lang.code);
+        console.log("Loaded " + count + " variant patterns");
     }
 
+    readSeparablePrefixes(lang, dir) {
+        var filename = dir + "/" + "separable-prefixes.txt";
+        if (!fs.existsSync(filename))
+            return;
+
+        var line;
+        var count = 0;
+        var lineReader = new readlines(filename);
+
+        while (line = lineReader.next()) {
+            line = line.toString().trim();
+            if (line != "" && line[0] != '#')
+            {
+                lang.addSeparablePrefix(line);
+                count++;
+            }
+        }
+
+        console.log("Loaded " + count + " separable prefixes");
+
+    }
 }

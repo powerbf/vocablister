@@ -62,6 +62,18 @@ function isSentenceTerminator(ch) {
     return (ch == '.' || ch == '!' || ch == '?' || ch == ';')
 }
 
+function isAlpha(ch) {
+    return (!isWhitespace(ch) && !isNumber(ch) && !isPunctuation(ch) && !isControlChar(ch));
+}
+
+function containsAlphas(word) {
+    for (let ch of word) {
+        if (isAlpha(ch))
+            return true;
+    }
+    return false;
+}
+
 function cleanText(text)
 {
     var result = "";
@@ -163,7 +175,7 @@ function getNextSentenceWords(text, pos, words) {
                 done = true;
             }
         } while (!done);
-        if (word.length > 0) {
+        if (word.length > 0 && containsAlphas(word)) {
             words.push(word);
         }
         start = end;
@@ -460,16 +472,44 @@ function process(requestData) {
         //let sentence = words.join(" ");
         //console.log(sentence);
 
-        for (let word of words) {
+        let done = {};
 
-            // ignore anything that is all numbers and/or punctuation
-            if (word.match(/^[0-9\.\-\?!;]+$/))
+        for (let i = 1; i < words.length; i++) {
+            let prefix = words[i];
+            if (!sourceLang.isSeparablePrefix(prefix))
+                continue;
+
+            for (let j = i - 1; j >= 0; j--) {
+                let isWord = false;
+                let suffix = words[j].toLowerCase();
+                let word = prefix + suffix;
+                let alreadySearched = searched[word];
+
+                let meanings = findMeanings(word);
+                if (meanings.length > 0) {
+                    isWord = true;
+                    if (!alreadySearched && !anyBelowThreshold(freqThreshold, meanings))
+                        results = results.concat(meanings);
+                }
+
+                if (isWord) {
+                    done[i] = true;
+                    done[j] = true;
+                    break;
+                }
+            }
+        }
+
+        for (let i in words) {
+            if (done[i])
+                continue;
+
+            let word = words[i];
+
+            if (searched[word])
                 continue;
 
             if (sourceLang.getFrequencyRank(word) <= freqThreshold)
-                continue;
-
-            if (searched[word])
                 continue;
 
             let meanings = findMeanings(word);

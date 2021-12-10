@@ -43,3 +43,9 @@ ge(..+)en$,$1en
 ^([A-ZÄÖÜ].+)erinnen$,$1er,true
 ^([A-ZÄÖÜ].+)istin$,$1ist,true
 ^([A-ZÄÖÜ].+)istinnen$,$1ist,true
+
+# for compound words ending with haben (e.g. vorhaben)
+^(..+)habe$,$1haben
+^(..+)hast$,$1haben
+^(..+)hat$,$1haben
+^(..+)habt$,$1haben

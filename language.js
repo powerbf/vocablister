@@ -10,6 +10,7 @@ module.exports = class Language {
         this.explicitVariants = {};
         this.frequency = {};
         this.frequencyCount = 0;
+        this.separablePrefixes = [];
     }
 
     addVariantPattern(variant, canonical, lastResort) {
@@ -79,4 +80,17 @@ module.exports = class Language {
     getFrequencyListSize() {
         return this.frequencyCount;
     }
+
+    addSeparablePrefix(prefix) {
+        this.separablePrefixes.push(prefix);
+    }
+
+    getSeparablePrefixes() {
+        return this.separablePrefixes;
+    }
+
+    isSeparablePrefix(word) {
+        return this.separablePrefixes.includes(word);
+    }
+
 }
