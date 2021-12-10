@@ -505,7 +505,7 @@ function process(requestData) {
 
     // concatenate meanings into a single string
     for (let res of results) {
-        res.target = res.targets.join(",");
+        res.target = res.targets.join(", ");
     }
 
     results = removeDuplicates(results);
