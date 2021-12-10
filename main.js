@@ -500,10 +500,15 @@ function process(requestData) {
         }
     }
 
+    if (!showAll)
+        results = filterResults(results);
+
     // concatenate meanings into a single string
     for (let res of results) {
         res.target = res.targets.join(",");
     }
+
+    results = removeDuplicates(results);
 
     // convert frequency to string
     // put X+ if it's not in the frequency list
@@ -519,10 +524,6 @@ function process(requestData) {
             res.freq = res.frequency.toString();
     }
 
-    if (!showAll)
-        results = filterResults(results);
-
-    results = removeDuplicates(results);
     return results;
 }
 
