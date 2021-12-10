@@ -4,10 +4,8 @@
 ^([a-zäöü].+)e$,$1en
 ^([a-zäöü].+)st$,$1en
 ^([a-zäöü].+)t$,$1en
-^([a-zäöü].+d)et$,$1en
-^([a-zäöü].+d)est$,$1en
-^([a-zäöü].+t)et$,$1en
-^([a-zäöü].+d)test$,$1en
+^([a-zäöü].+)et$,$1en
+^([a-zäöü].+)est$,$1en
 # regular verb conjugation - imperative
 ^([a-zäöü].+)$,$1en
 # regular verb conjugation - past
