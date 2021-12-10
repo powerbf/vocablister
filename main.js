@@ -32,6 +32,10 @@ function isControlChar(ch) {
     return false;
 }
 
+function isNumber(ch) {
+    return (ch >= '0' && ch <= '9');
+}
+
 function isPunctuation(ch) {
     // basic latin
     if ((ch >= '\u0021' && ch <= '\u002F') || (ch >= '\u003A' && ch <= '\u0040')
@@ -87,6 +91,19 @@ function cleanText(text)
     result = result.trim().replace(/ +/g, " ");
 
     return result;
+}
+
+// make first letter of work uppercase
+function capitalise(word) {
+    return word.slice(0,1).toUpperCase() + word.slice(1);
+}
+
+function isCapitalised(word) {
+    let first = word.slice(0,1);
+    if (first.toUpperCase() != first)
+        return false;
+    else
+        return !(isPunctuation(first) || isNumber(first));
 }
 
 function isKnownWord(word) {
@@ -242,7 +259,7 @@ function findMeanings(word) {
 
     if (meanings.length == 0) {
         // try capitalising first letter
-        let upper = word.slice(0,1).toUpperCase() + word.slice(1);
+        let upper = capitalise(word);
         if (upper != word) {
             meanings = lookupWordAndCanonicals(dictionary, sourceLang, upper); 
         }
@@ -258,6 +275,8 @@ function findMeaningsOfWordParts(word) {
     let i = 1;
     while (i < rest.length - 1) {
         let searchTerm = rest.slice(i);
+        if (isCapitalised(word))
+            searchTerm = capitalise(searchTerm);
         let meanings = findMeanings(searchTerm);
         if (meanings.length == 0) {
             i++;
