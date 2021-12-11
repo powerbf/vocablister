@@ -8,7 +8,7 @@ module.exports = class Dictionary {
         this.entries = {};
     }
 
-    addEntry(source, target) {
+    addEntry(source, target, wordType) {
         // source is the full source language entry, but key is stripped down
 
         // remove bracketed annotations
@@ -33,6 +33,7 @@ module.exports = class Dictionary {
         entry["key"] = key;
         entry["source"] = source;
         entry["target"] = target;
+        entry["wordType"] = wordType;
 
         if (!(key in this.entries))
             this.entries[key] = [];
@@ -41,21 +42,22 @@ module.exports = class Dictionary {
     }
 
     lookup(term) {
-        var meanings = this.entries[term];
-        if (typeof meanings === 'undefined')
+        var entries = this.entries[term];
+        if (entries == null)
             return [];
         else {
             // consolidate
             let consolidated = {}; 
-            for (let i = 0; i < meanings.length; i++) {
-                let source = meanings[i].source;
-                if (!(source in consolidated))
-                    consolidated[source] = [];
-                consolidated[source].push(meanings[i].target);
+            for (let entry of entries) {
+                let conKey = entry.wordType + ": " + entry.source;
+                if (!(conKey in consolidated)) {
+                    consolidated[conKey] = {key: term, source: entry.source, wordType: entry.wordType, targets:[]};
+                }
+                consolidated[conKey].targets.push(entry.target);
             }
             let results = [];
-            for (var [source, targets] of Object.entries(consolidated)) {
-                targets = targets.sort((a, b) => {
+            for (let [conKey, entry] of Object.entries(consolidated)) {
+                entry.targets = entry.targets.sort((a, b) => {
                     // put meaning without annotations first - they are likely to be more common
                     if (!a.includes("[") && b.includes("["))
                         return -1;
@@ -64,7 +66,7 @@ module.exports = class Dictionary {
                     else
                         return 0;
                 });
-                results.push({key: term, source: source, targets: targets});
+                results.push(entry);
             }
             return results;
         }

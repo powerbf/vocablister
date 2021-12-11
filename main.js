@@ -221,7 +221,8 @@ function readDictionary(sourceLang, targetLang, filename) {
         {
             let fields = line.split('\t');
             if (fields.length >= 2) {
-                if (dict.addEntry(fields[0], fields[1]))
+                let wordType = (fields.length >= 3 ? fields[2] : "");
+                if (dict.addEntry(fields[0], fields[1], wordType))
                     count++;
             }
         } 
@@ -441,10 +442,11 @@ function removeDuplicates(entries)
     let included = {};
     let results = [];
     for (let entry of entries) {
-        let previous = included[entry.source];
+        let key = entry.wordType + ": " + entry.source;
+        let previous = included[key];
         if (previous == null) {
             results.push(entry);
-            included[entry.source] = [entry];
+            included[key] = [entry];
         }
         else {
             let keep = true;
