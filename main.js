@@ -557,7 +557,7 @@ function process(requestData) {
             }
 
             if (showAll && !gotResults) {
-                let entry = {key: word, source: word, target:"???"};
+                let entry = {key: word, source: word, targets:["???"]};
                 entry.frequency = sourceLang.getFrequencyRank(word);
                 meanings.push(entry);
             }

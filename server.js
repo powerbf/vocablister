@@ -69,9 +69,9 @@ function handlePostRequest(req, res) {
             responseStr = responseStr.replace(">", "&gt;");
             res.end(responseStr);
         }
-        catch (err) {
+        catch (e) {
             let response = {};
-            response.error = "Something went wrong: " + err.message;
+            response.error = "Something went wrong: " + e.message + "\n" + e.stack;
             res.end(JSON.stringify(response));
         }
     });
