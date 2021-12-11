@@ -65,8 +65,8 @@ function handlePostRequest(req, res) {
                 response.results = main.process(data);
 
             let responseStr = JSON.stringify(response)
-            responseStr = responseStr.replace("<", "&lt;");
-            responseStr = responseStr.replace(">", "&gt;");
+            responseStr = responseStr.replaceAll("<", "&lt;");
+            responseStr = responseStr.replaceAll(">", "&gt;");
             res.end(responseStr);
         }
         catch (e) {
