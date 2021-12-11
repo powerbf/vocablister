@@ -63,7 +63,29 @@ function isSentenceTerminator(ch) {
 }
 
 function isAlpha(ch) {
-    return (!isWhitespace(ch) && !isNumber(ch) && !isPunctuation(ch) && !isControlChar(ch));
+    // deal with most likely cases first
+    if (ch >= 'a' && ch <= 'z')
+        return true;
+    else if (ch >= 'A' && ch <= 'Z')
+        return true;
+    else if (ch <= '\u00BF') {
+        // everything else below C0 is non-alpha
+        // (Basic Latin block + first half of Latin-1 Supplement)
+        return false;
+    }
+    else if (ch <= '\u024F') {
+        // Rest of Latin-1 supplement + Latin extended A and B
+        // Everything in the range 00C0 to 024F is an alpha, except for 2 mathematical symbols
+        return  (ch != '\u00D7' && ch != '\u00F7');
+    }
+    else if (ch <= '\u02AF') {
+        // IPA symbols - For our purposes, they are not alphas 
+        // (won't find words containing these symbols in the dictionary)
+        return false;
+    }
+    else {
+        return (!isWhitespace(ch) && !isPunctuation(ch));
+    }
 }
 
 function containsAlphas(word) {
