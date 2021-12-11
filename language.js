@@ -1,6 +1,8 @@
 'use strict';
 
 module.exports = class Language {
+
+    static RARE = 1e9;
     
     constructor(code) {
         this.code = code;
@@ -71,10 +73,19 @@ module.exports = class Language {
             res = this.frequency[word.toLowerCase()];
         if (res == null) {
             //console.log("Frequency of " + word + " is null");
-            return this.getFrequencyListSize() + 1;
+            return Language.RARE;
         }
         //console.log("Frequency of " + word + " is " + res.toString());
         return res;
+    }
+
+    isInFrequencyList(word) {
+        if (this.frequency[word] != null)
+            return true;
+        else if (this.frequency[word.toLowerCase()] != null)
+            return true;
+        else
+            return false;
     }
 
     getFrequencyListSize() {

@@ -141,7 +141,7 @@ function isCapitalised(word) {
 }
 
 function isKnownWord(word) {
-    if (sourceLang.getFrequencyRank(word) <= sourceLang.getFrequencyListSize())
+    if (sourceLang.isInFrequencyList(word))
         return true;
     else if (dictionary.lookup(word).length > 0)
         return true;
@@ -579,15 +579,9 @@ function process(requestData) {
     results = removeDuplicates(results);
 
     // convert frequency to string
-    // put X+ if it's not in the frequency list
-    var numFreqs = sourceLang.getFrequencyListSize();
     for (let res of results) {
-        if (res.frequency > numFreqs) {
-            if (res.target == "???")
-                res.freq = "";
-            else
-                res.freq = numFreqs.toString() + "+";
-        }
+        if (res.frequency == Language.RARE)
+            res.freq = (res.target == "???" ? "" : "rare");
         else
             res.freq = res.frequency.toString();
     }
