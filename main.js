@@ -389,12 +389,7 @@ function sortByFrequencyandQuality(entries)
 }
 
 function isDifferentWord(a, b) {
-    if (a.frequency != b.frequency)
-        return true;
-    else if (a.isInFrequencyList)
-        return false;
-    else
-        return (a.key != b.key);
+    return (a.key != b.key);
 }
 
 function filterResults(entries)
