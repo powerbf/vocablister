@@ -49,8 +49,19 @@ module.exports = class LanguageReader {
                 count++;
                 if (occurences < 3)
                     rank = Language.RARE;
-                else if (occurences < lastOccurrences)
+                else if (occurences < lastOccurrences) {
                     rank = count;
+                    if (rank > 10000) {
+                        // beyond a certain point, occurrences are low and rankings are approximate
+                        //console.log("Rank: " + rank)
+                        if (rank >= 100000)
+                            rank = 100000;
+                        else if (rank >= 30000)
+                            rank = Math.floor(rank/10000) * 10000;
+                        else
+                            rank = Math.floor(rank/1000) * 1000;
+                    }
+                }
                 lastOccurrences = occurences;
                 lang.addToFrequencyList(word, rank);
             }

@@ -18,7 +18,7 @@ $("#inputs").submit(function( event ) {
             {
                 let results = response.results;
                 output = "<table class='table table-bordered'>";
-                output += "<thead><th>Word</th><th>Freq</th><th>Meaning</th></thead>";
+                output += "<thead><th>Word</th><th>Freq Rank</th><th>Meaning</th></thead>";
                 for (let i = 0; i < results.length; i++) {
                     output += "<tr>";
                     let entry = results[i];

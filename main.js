@@ -475,6 +475,11 @@ function anyBelowThreshold(freqThreshold, meanings) {
 
 function process(requestData) {
     freqThreshold = requestData["freqThreshold"];
+    if (freqThreshold >= 10000) {
+        // ranks above 10,000 are expressed as >N
+        freqThreshold -= 1;
+    }
+
     var showAll = requestData["show_all"];
     var text = cleanText(requestData["text"]);
 
@@ -580,10 +585,17 @@ function process(requestData) {
 
     // convert frequency to string
     for (let res of results) {
-        if (res.frequency == Language.RARE)
-            res.freq = (res.target == "???" ? "" : "rare");
-        else
+
+        if (res.frequency < 10000) {
             res.freq = res.frequency.toString();
+        }
+        else if (res.frequency == Language.RARE) {
+            res.frequency = 100000;
+            res.freq = (res.target == "???" ? "" : ">100000");
+        }
+        else {
+            res.freq = ">" + res.frequency.toString();
+        }
     }
 
     return results;
