@@ -217,7 +217,7 @@ function readDictionary(sourceLang, targetLang, filename) {
     let line;
     while (line = lineReader.next()) {
         line = line.toString().trim();
-        if (line != "" && line[0] != '#' && !line.includes("FALSE") && !line.includes("FALSCH"))
+        if (line != "" && line[0] != '#')
         {
             let fields = line.split('\t');
             if (fields.length >= 2) {
