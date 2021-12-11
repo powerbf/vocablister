@@ -12,7 +12,7 @@ $("#inputs").submit(function( event ) {
             response = JSON.parse(response);
             var output = "";
             if (response.error != null) {
-                output = "<b>ERROR:</b> " + response.error;
+                output = "<b>ERROR:</b> " + response.error.replaceAll("\n", "<br>");
             }
             else
             {
