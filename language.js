@@ -61,10 +61,9 @@ module.exports = class Language {
         return canonicals;
     }
 
-    addToFrequencyList(word) {
-        // assign rank based on number of words already in the list
+    addToFrequencyList(word, rank) {
         this.frequencyCount++;
-        this.frequency[word] = this.frequencyCount;
+        this.frequency[word] = rank;
     }
 
     getFrequencyRank(word) {
