@@ -366,30 +366,44 @@ function sortByFrequencyandQuality(entries)
         return entries;
 
     for (let entry of entries) {
+        let src = entry.source;
 
         // does the meaning relate to a specific context?
-        entry.specific = (entry.source.match(/[^\s].*\[/) != null);
-        entry.vulgar = (entry.source.includes("vulg."));
+        entry.specificTerm = (src.endsWith("]") && ! src.startsWith("["));
+        entry.vulgar = (src.includes("vulg."));
         entry.defCount = entry.targets.length;
 
-        entry.specificTarget = true;
+        entry.specificMeaning = true;
         for (let meaning of entry.targets) {
-            if (!meaning.includes("[") || meaning.startsWith("[")) {
-                entry.specificTarget = false;
+            if (!meaning.endsWith("]") || meaning.startsWith("[")) {
+                entry.specificMeaning = false;
                 break;
             }
         }
+
+        if (entry.vulgar)
+            entry.quality = 1;
+        else if (entry.defCount >= 5)
+            entry.quality = 10;
+        else if (src.includes("<") && !entry.specificTerm)
+            entry.quality = 10;
+        else if (!entry.specificTerm && !entry.specificMeaning)
+            entry.quality = 9;
+        else if (!entry.specificTerm && entry.specificMeaning)
+            entry.quality = 4;
+        else if (entry.specificTerm && !entry.specificMeaning)
+            entry.quality = 3;
+        else if (entry.specificTerm && entry.specificMeaning)
+            entry.quality = 2;
     }
 
     return entries.sort((a, b) => {
         if (a.frequency != b.frequency)
             return (a.frequency < b.frequency ? -1 : 1);
-        else if (a.vulgar != b.vulgar)
-            return (b.vulgar ? -1 : 1);
-        else if (a.specific != b.specific)
-            return (b.specific ? -1 : 1);
-        else if (a.specificTarget != b.specificTarget)
-            return (b.specificTarget ? -1 : 1);
+        else if (a.key != b.key)
+            return (a.key < b.key ? -1 : 1);
+        else if (a.quality != b.quality)
+            return (a.quality > b.quality ? -1 : 1);
         else if (a.defCount != b.defCount)
             return (a.defCount > b.defCount ? -1 : 1);
         else
@@ -408,34 +422,22 @@ function filterResults(entries)
     
     // first one should be the best match, so always take it
     var filtered = [entries[0]];
+    var bestQuality = entries[0].quality;
     var lastKept = entries[0];
-    let maxDefCount = entries[0].defCount;
 
     for (let i = 1; i < entries.length; i++) {
         let entry = entries[i];
         if (isDifferentWord(entry, lastKept)) {
             filtered.push(entry);
+            bestQuality = entry.quality;
             lastKept = entry;
-            maxDefCount = entry.defCount;
         }
         else {
             // another definition for the same word, but could be important enough to keep
-            if (entry.vulgar && !lastKept.vulgar)
-                continue;
-            else if (entry.defCount < 5) {
-                if (entry.specific && !lastKept.specific)
-                    continue;
-                else if (entry.specificTarget && !lastKept.specificTarget)
-                    continue;
-                else if (entry.specific && entry.specificTarget)
-                    continue;
-                else if (maxDefCount >= 5)
-                    continue;
+            if (entry.quality == bestQuality || entry.quality >= 5) {
+                filtered.push(entry);
+                lastKept = entry;
             }
-
-            filtered.push(entry);
-            lastKept = entry;
-            maxDefCount = Math.max(entry.defCount, maxDefCount);
         }
     }
     return filtered;
