@@ -282,8 +282,11 @@ function lookupWordAndCanonicals(dict, sourceLang, word) {
     return sortByFrequencyandQuality(meanings);
 }
 
-function findMeanings(word) {
+function findMeanings(word, tryOtherCases = true) {
     let meanings = lookupWordAndCanonicals(dictionary, sourceLang, word);
+    if (!tryOtherCases)
+        return meanings;
+
     if (anyBelowThreshold(freqThreshold, meanings)) {
         // stop here because we're going to throw this away anyway
         return meanings;
@@ -317,14 +320,20 @@ function findMeanings(word) {
 
 // returns a 2D array
 function findMeaningsOfWordParts(word) {
+    if (sourceLang.code == "de") {
+        // all German nouns are capitalised
+        if (!isCapitalised(word))
+            return [];
+    }
+
     let results = [];
     let rest = word;
     let i = 1;
     while (i < rest.length - 1) {
         let searchTerm = rest.slice(i);
-        if (isCapitalised(word))
+        if (sourceLang.code == "de")
             searchTerm = capitalise(searchTerm);
-        let meanings = findMeanings(searchTerm);
+        let meanings = findMeanings(searchTerm, false);
         if (meanings.length == 0) {
             i++;
         }
