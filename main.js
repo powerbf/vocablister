@@ -229,20 +229,23 @@ function findMeanings(word, tryOtherCases = true) {
 
 // returns a 2D array
 function findMeaningsOfWordParts(word) {
-    if (sourceLang.code == "de") {
-        // all German nouns are capitalised
-        if (!StringUtil.isCapitalised(word))
-            return [];
-    }
-
     let results = [];
     let rest = word;
     let i = 1;
+
+    let capitalise = false;
+    if (sourceLang.code == "de") {
+        let lower = word.toLowerCase();
+        // compound words are normally nouns, which are capitalised in German.
+        // the exception is large numbers
+        if (!lower.includes("tausend") && !lower.includes("hundert"))
+            capitalise = true;
+    }
     while (i < rest.length - 1) {
         let searchTerm = rest.slice(i);
-        if (sourceLang.code == "de")
+        if (capitalise)
             searchTerm = StringUtil.capitalise(searchTerm);
-        let meanings = findMeanings(searchTerm, false);
+        let meanings = findMeanings(searchTerm, !capitalise);
         if (meanings.length == 0) {
             i++;
         }
