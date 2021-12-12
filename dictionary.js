@@ -27,12 +27,16 @@ module.exports = class Dictionary {
                 brackets--;
         }
 
+        result = result.trim();
         if (result.includes(" ")) {
-            // remove annotations like sb., sth., etc.
-            result = result.replace(/[^\s0-9]+\./g, "");
+            if (result.includes(".")) {
+                // remove annotations like sb., sth., etc.
+                result = result.replace(/[^\s0-9]+\./g, "");
+                result = result.trim();
+            }
         }
 
-        return result.trim();
+        return result;
     }
 
     addEntry(source, target, wordType) {
@@ -40,6 +44,10 @@ module.exports = class Dictionary {
 
         // remove bracketed annotations
         var key = this.extractKey(source);
+        if (key.length == 0) {
+            //console.log("WARNING: zero-length key for: " + source);
+            return false;
+        }
 
         // ignore multi-word entries
         if (key.includes(" "))
