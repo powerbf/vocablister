@@ -41,8 +41,6 @@ module.exports = class Dictionary {
 
     addEntry(source, target, wordType) {
         // source is the full source language entry, but key is stripped down
-
-        // remove bracketed annotations
         var key = this.extractKey(source);
         if (key.length == 0) {
             //console.log("WARNING: zero-length key for: " + source);
