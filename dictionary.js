@@ -1,5 +1,36 @@
 'use strict';
 
+function extractKey(str) {
+    let result = "";
+    let brackets = 0;
+    let len = str.length;
+    let last = ""
+    for (let i = 0; i < len; i++) {
+        let ch = str[i];
+        if (ch == "[" || ch == "{" || ch == "(" || ch == "<")
+            brackets++;
+        else if (brackets == 0) {
+            if (ch == " " && (last == " " || last == ""))
+                continue;
+            result += ch;
+            last = ch;
+        }
+        else if (ch == "]" || ch == "}" || ch == ")" || ch == ">")
+            brackets--;
+    }
+
+    result = result.trim();
+    if (result.includes(" ")) {
+        if (result.includes(".")) {
+            // remove annotations like sb., sth., etc.
+            result = result.replace(/[^\s0-9]+\./g, "");
+            result = result.trim();
+        }
+    }
+
+    return result;
+}
+
 module.exports = class Dictionary {
 
     constructor(sourceLang, targetLang) {
@@ -8,40 +39,9 @@ module.exports = class Dictionary {
         this.entries = {};
     }
 
-    extractKey(str) {
-        let result = "";
-        let brackets = 0;
-        let len = str.length;
-        let last = ""
-        for (let i = 0; i < len; i++) {
-            let ch = str[i];
-            if (ch == "[" || ch == "{" || ch == "(" || ch == "<")
-                brackets++;
-            else if (brackets == 0) {
-                if (ch == " " && (last == " " || last == ""))
-                    continue;
-                result += ch;
-                last = ch;
-            }
-            else if (ch == "]" || ch == "}" || ch == ")" || ch == ">")
-                brackets--;
-        }
-
-        result = result.trim();
-        if (result.includes(" ")) {
-            if (result.includes(".")) {
-                // remove annotations like sb., sth., etc.
-                result = result.replace(/[^\s0-9]+\./g, "");
-                result = result.trim();
-            }
-        }
-
-        return result;
-    }
-
     addEntry(source, target, wordType) {
         // source is the full source language entry, but key is stripped down
-        var key = this.extractKey(source);
+        var key = extractKey(source);
         if (key.length == 0) {
             //console.log("WARNING: zero-length key for: " + source);
             return false;
