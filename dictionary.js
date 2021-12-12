@@ -8,22 +8,38 @@ module.exports = class Dictionary {
         this.entries = {};
     }
 
+    extractKey(str) {
+        let result = "";
+        let brackets = 0;
+        let len = str.length;
+        let last = ""
+        for (let i = 0; i < len; i++) {
+            let ch = str[i];
+            if (ch == "[" || ch == "{" || ch == "(" || ch == "<")
+                brackets++;
+            else if (brackets == 0) {
+                if (ch == " " && (last == " " || last == ""))
+                    continue;
+                result += ch;
+                last = ch;
+            }
+            else if (ch == "]" || ch == "}" || ch == ")" || ch == ">")
+                brackets--;
+        }
+
+        if (result.includes(" ")) {
+            // remove annotations like sb., sth., etc.
+            result = result.replace(/[^\s0-9]+\./g, "");
+        }
+
+        return result.trim();
+    }
+
     addEntry(source, target, wordType) {
         // source is the full source language entry, but key is stripped down
 
         // remove bracketed annotations
-        var key = source.replace(/\[[^\]]*\]/g, "");
-        key = key.replace(/\([^\)]*\)/g, "");
-        key = key.replace(/\{[^\}]*\}/g, "");
-        key = key.replace(/<[^>]*>/g, "");
-
-        if (key.includes(" ")) {
-            // remove annotations like sb., sth., etc.
-            key = key.replace(/[^\s0-9]+\./, "");
-        }
-
-        // condense spaces left over from above substitutions
-        key = key.replace(/\s+/g, " ").trim();
+        var key = this.extractKey(source);
 
         // ignore multi-word entries
         if (key.includes(" "))
