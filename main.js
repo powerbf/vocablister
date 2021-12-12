@@ -5,6 +5,7 @@ const readlines = require('n-readlines');
 var Dictionary = require('./dictionary.js');
 var Language = require('./language.js');
 var LanguageReader = require('./language-reader.js');
+var StringUtil = require('./string-util.js');
 
 const SOFT_HYPHEN = '\u00AD';
 
@@ -17,101 +18,22 @@ var sourceLang;
 var freqThreshold;
 var searched = {}
 
-function isWhitespace(ch) {
-    if (" \t\r\n".includes(ch))
-        return true;
-    // non-breaking spaces
-    if ("\u00A0\u202F\u2007\u2060".includes(ch))
-        return true;
-    return false;
-}
-
-function isControlChar(ch) {
-    if (ch <= '\u001F' || ( ch >= '\u007F' && ch <= '\u009F'))
-        return !isWhitespace(ch);
-    return false;
-}
-
-function isNumber(ch) {
-    return (ch >= '0' && ch <= '9');
-}
-
-function isPunctuation(ch) {
-    // basic latin
-    if ((ch >= '\u0021' && ch <= '\u002F') || (ch >= '\u003A' && ch <= '\u0040')
-            || (ch >= '\u005B' && ch <= '\u0060') || (ch >= '\u007B' && ch <= '\u007E'))
-        return true;
-
-    // latin extended A
-    if ((ch >= '\u00A0' && ch <= '\u00BF') || ch == '\u00D7' || ch == '\u00F7')
-        return true;
-
-    // general punctuation
-    if (ch >= '\u2000' && ch <= '\u206F')
-        return true;
-    
-    // TODO: other punctuation
-    return false;
-}
-
-function isWordPunctuation(ch) {
-    return (ch == "'" || ch == '-' || ch == '.');
-}
-
-function isSentenceTerminator(ch) {
-    return (ch == '.' || ch == '!' || ch == '?' || ch == ';')
-}
-
-function isAlpha(ch) {
-    // deal with most likely cases first
-    if (ch >= 'a' && ch <= 'z')
-        return true;
-    else if (ch >= 'A' && ch <= 'Z')
-        return true;
-    else if (ch <= '\u00BF') {
-        // everything else below C0 is non-alpha
-        // (Basic Latin block + first half of Latin-1 Supplement)
-        return false;
-    }
-    else if (ch <= '\u024F') {
-        // Rest of Latin-1 supplement + Latin extended A and B
-        // Everything in the range 00C0 to 024F is an alpha, except for 2 mathematical symbols
-        return  (ch != '\u00D7' && ch != '\u00F7');
-    }
-    else if (ch <= '\u02AF') {
-        // IPA symbols - For our purposes, they are not alphas 
-        // (won't find words containing these symbols in the dictionary)
-        return false;
-    }
-    else {
-        return (!isWhitespace(ch) && !isPunctuation(ch));
-    }
-}
-
-function containsAlphas(word) {
-    for (let ch of word) {
-        if (isAlpha(ch))
-            return true;
-    }
-    return false;
-}
-
 function cleanText(text)
 {
     var result = "";
 
     for (let i = 0; i < text.length; i++) {
         var ch = text[i];
-        if (isWhitespace(ch)) {
+        if (StringUtil.isWhitespace(ch)) {
             result += ' ';
         }
-        else if (isControlChar(ch)) {
+        else if (StringUtil.isControlChar(ch)) {
             // ignore
         }
-        else if (isPunctuation(ch)) {
+        else if (StringUtil.isPunctuation(ch)) {
             if (ch == SOFT_HYPHEN)
                 result += ''; // ignore
-            else if (isSentenceTerminator(ch) || isWordPunctuation(ch))
+            else if (StringUtil.isSentenceTerminator(ch) || StringUtil.isWordPunctuation(ch))
                 result += ch; // keep
             else
                 result += ' '; // replace with space
@@ -125,19 +47,6 @@ function cleanText(text)
     result = result.trim().replace(/ +/g, " ");
 
     return result;
-}
-
-// make first letter of work uppercase
-function capitalise(word) {
-    return word.slice(0,1).toUpperCase() + word.slice(1);
-}
-
-function isCapitalised(word) {
-    let first = word.slice(0,1);
-    if (first.toUpperCase() != first)
-        return false;
-    else
-        return !(isPunctuation(first) || isNumber(first));
 }
 
 function isKnownWord(word) {
@@ -197,7 +106,7 @@ function getNextSentenceWords(text, pos, words) {
                 done = true;
             }
         } while (!done);
-        if (word.length > 0 && containsAlphas(word)) {
+        if (word.length > 0 && StringUtil.containsAlphas(word)) {
             words.push(word);
         }
         start = end;
@@ -302,7 +211,7 @@ function findMeanings(word, tryOtherCases = true) {
 
     if (meanings.length == 0) {
         // try capitalising first letter
-        let upper = capitalise(word);
+        let upper = StringUtil.capitalise(word);
         if (upper != word) {
             meanings = lookupWordAndCanonicals(dictionary, sourceLang, upper); 
         }
@@ -322,7 +231,7 @@ function findMeanings(word, tryOtherCases = true) {
 function findMeaningsOfWordParts(word) {
     if (sourceLang.code == "de") {
         // all German nouns are capitalised
-        if (!isCapitalised(word))
+        if (!StringUtil.isCapitalised(word))
             return [];
     }
 
@@ -332,7 +241,7 @@ function findMeaningsOfWordParts(word) {
     while (i < rest.length - 1) {
         let searchTerm = rest.slice(i);
         if (sourceLang.code == "de")
-            searchTerm = capitalise(searchTerm);
+            searchTerm = StringUtil.capitalise(searchTerm);
         let meanings = findMeanings(searchTerm, false);
         if (meanings.length == 0) {
             i++;
