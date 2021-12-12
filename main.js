@@ -269,6 +269,49 @@ function findMeaningsOfWordParts(word) {
     return results;
 }
 
+function handleSeparableVerb(sentenceWords, prefixPos)
+{
+    let prefix = sentenceWords[prefixPos].toLowerCase();
+
+    // work backwards to find a possible suffix
+    for (let i = prefixPos - 1; i >= 0; i--) {
+        let suffix = sentenceWords[i].toLowerCase();
+        let word = prefix + suffix;
+
+        let entries = findMeanings(word, false);
+
+        let results = [];
+        for (let entry of entries) {
+            // German infinitives end with "en"
+            if (entry.key.endsWith("en"))
+                results.push(entry);
+        }
+
+        if (results.length == 0)
+            continue;
+
+        // if we get here, we've got a hit
+        // but do we want to keep it?
+
+        let infinitive = results[0].key;
+
+        if (searched[infinitive])
+            return []
+
+        if (sourceLang.getFrequencyRank(infinitive) <= freqThreshold)
+            return [];
+
+        let annotation = "(" + suffix + "..." + prefix + ") ";
+        for (let res of results)
+            res.source = annotation + res.source;
+
+        return results;
+    }
+
+    // no hits
+    return [];
+}
+
 function sortByFrequencyandQuality(entries)
 {
     if (entries.length < 2)
@@ -417,57 +460,37 @@ function process(requestData) {
         //let sentence = words.join(" ");
         //console.log(sentence);
 
-        let done = {};
-
-        for (let i = 1; i < words.length; i++) {
-            let prefix = words[i];
-            if (!sourceLang.isSeparablePrefix(prefix))
-                continue;
-
-            for (let j = i - 1; j >= 0; j--) {
-                let suffix = words[j].toLowerCase();
-                if (suffix.length < 3)
-                    continue;
-
-                let word = prefix + suffix;
-                let isWord = false;
-                let alreadySearched = searched[word];
-
-                let meanings = findMeanings(word);
-                if (meanings.length > 0) {
-                    isWord = true;
-                    if (!alreadySearched && !anyBelowThreshold(freqThreshold, meanings))
-                        results = results.concat(meanings);
-                }
-
-                if (isWord) {
-                    done[i] = true;
-                    done[j] = true;
-                    break;
-                }
-            }
-        }
-
         for (let i in words) {
-            if (done[i])
-                continue;
 
             let word = words[i];
+            let gotResults = false;
 
+            let skip = false;
             if (searched[word])
-                continue;
+                skip = true;
+            else if (sourceLang.getFrequencyRank(word) <= freqThreshold)
+                skip = true;
 
-            if (sourceLang.getFrequencyRank(word) <= freqThreshold)
-                continue;
+            let meanings = [];
+            if (!skip) {
+                meanings = findMeanings(word);
+                if (meanings.length > 0) {
+                    gotResults = true;;
+                    if (anyBelowThreshold(freqThreshold, meanings))
+                        meanings = [];
+                }
+            }
 
-            let meanings = findMeanings(word);
+            if (sourceLang.isSeparablePrefix(word)) {
+                let sepMeanings = handleSeparableVerb(words, i);
+                if (sepMeanings.length > 0) {
+                    gotResults = true;
+                    if (!anyBelowThreshold(freqThreshold, sepMeanings))
+                        meanings = meanings.concat(sepMeanings);
+                }
+            }
 
-            if (anyBelowThreshold(freqThreshold, meanings))
-                continue;
-
-            let gotResults = (meanings.length != 0);
-
-            if (meanings.length == 0) {
+            if (!skip && !gotResults) {
                 // try breaking word up
                 let partMeanings = findMeaningsOfWordParts(word);
                 gotResults = (partMeanings.length != 0);
@@ -478,7 +501,7 @@ function process(requestData) {
                 }
             }
 
-            if (showAll && !gotResults) {
+            if (showAll && !gotResults && !skip) {
                 let entry = {key: word, source: word, targets:["???"]};
                 entry.frequency = sourceLang.getFrequencyRank(word);
                 meanings.push(entry);
