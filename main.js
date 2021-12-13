@@ -4,7 +4,8 @@ const fs = require('fs');
 const readlines = require('n-readlines');
 var Dictionary = require('./dictionary.js');
 var Language = require('./language.js');
-var LanguageReader = require('./language-reader.js');
+const LanguageReader = require('./language-reader.js');
+const DictionaryReader = require('./dictionary-reader.js');
 var StringUtil = require('./string-util.js');
 
 const SOFT_HYPHEN = '\u00AD';
@@ -115,42 +116,9 @@ function getNextSentenceWords(text, pos, words) {
     return end;
 }
 
-function readDictionary(sourceLang, targetLang, filename) {
-    var dict = new Dictionary(sourceLang, targetLang);
-    console.log("Reading " + filename + "...")
-
-    var startTime = new Date();
-    var lineReader = new readlines(filename);
-
-    let count = 0;
-    let line;
-    while (line = lineReader.next()) {
-        line = line.toString().trim();
-        if (line != "" && line[0] != '#')
-        {
-            let fields = line.split('\t');
-            if (fields.length >= 2) {
-                let wordType = (fields.length >= 3 ? fields[2] : "");
-                if (dict.addEntry(fields[0], fields[1], wordType))
-                    count++;
-            }
-        } 
-    }
-
-    var duration = new Date() - startTime;
-    var durStr = (duration < 1000 ? duration.toString() + " ms"
-                                  : (duration/1000).toString() + " seconds");
-
-    console.log("Loaded " + count + " dictionary entries in " + durStr);
-    return dict;
-}
-
-
 function init() {
     languages = new LanguageReader().readLanguages();
-    var de_en = readDictionary("de", "en", "./dat/dict/de-en.txt");
-    dictionaries["de-en"] = de_en;
-    //de_en.addEntry("Hund", "dog");
+    dictionaries = new DictionaryReader().readDictionaries();
 }
 
 // a simple lookup of a word
