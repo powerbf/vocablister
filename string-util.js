@@ -74,15 +74,12 @@ function containsAlphas(word) {
 
 // make first letter of work uppercase
 function capitalise(word) {
-    return word.slice(0,1).toUpperCase() + word.slice(1);
+    return word.slice(0,1).toUpperCase() + word.slice(1).toLowerCase();
 }
 
 function isCapitalised(word) {
     let first = word.slice(0,1);
-    if (first.toUpperCase() != first)
-        return false;
-    else
-        return !(isPunctuation(first) || isNumber(first));
+    return (first.toLowerCase() != first);
 }
 
 function isWordPunctuation(ch) {
