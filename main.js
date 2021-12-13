@@ -395,6 +395,31 @@ function filterResults(entries)
             }
         }
     }
+
+    if (sourceLang.code == "de") {
+        // check for verb infinitive
+        let gotInfinitive = false;
+        for (let i = 1; i < filtered.length; i++) {
+            let entry = filtered[i];
+            if (entry.wordType == "verb") {
+                entry.infinitive = (entry.key.endsWith("en"));
+                gotInfinitive = (gotInfinitive || entry.infinitive);
+            }
+        }
+
+        if (gotInfinitive) {
+            // get rid of conjugated verb forms
+            let filtered2 = [];
+            for (let i = 1; i < filtered.length; i++) {
+                let entry = filtered[i];
+                if (entry.wordType == "verb" && !entry.infinitive)
+                    continue;
+                filtered2.push(entry);
+            }
+            filtered = filtered2;
+        }
+    }
+
     return filtered;
 }
 
