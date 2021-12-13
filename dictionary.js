@@ -71,7 +71,7 @@ module.exports = class Dictionary {
             // consolidate
             let consolidated = {}; 
             for (let entry of entries) {
-                let conKey = entry.wordType + ": " + entry.source;
+                let conKey = entry.source;
                 if (!(conKey in consolidated)) {
                     consolidated[conKey] = {key: term, source: entry.source, wordType: entry.wordType, targets:[]};
                 }

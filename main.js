@@ -403,7 +403,7 @@ function removeDuplicates(entries)
     let included = {};
     let results = [];
     for (let entry of entries) {
-        let key = entry.wordType + ": " + entry.source;
+        let key = entry.source;
         let previous = included[key];
         if (previous == null) {
             results.push(entry);
